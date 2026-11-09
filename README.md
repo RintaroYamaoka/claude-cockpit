@@ -9,9 +9,8 @@ cockpit は、その把握を transcript から目を離さずに取り戻すた
 https://github.com/user-attachments/assets/b6df1973-bef3-47d1-9bb4-a464dfe8626d
 
 
-| mod | 何をするか |
-|---|---|
-| [cockpit](./cockpit) | 書かれている最中のコードが流れる。確定したら本当の差分(変わった行と前後だけ)。そのファイルの imports / dependents と、このセッションで増えた依存。編集直後の型チェック・テストの結果。履歴をさかのぼって、その時の画面に戻る。`o` で VS Code の該当行へ、`r` でリバート |
+計器は 4 つ(流れるコードと本当の差分・そのファイルの依存・編集直後のチェック・履歴)、操作は 2 つ(`o` で VS Code、`r` でリバート)。設定は無い。
+画面の読み方・仕組み・制約は [cockpit/README.md](./cockpit/README.md)。
 
 ## インストール
 
