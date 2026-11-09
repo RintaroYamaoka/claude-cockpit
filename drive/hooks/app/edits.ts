@@ -5,7 +5,7 @@ import type { Change } from '../../types'
 import { hunkFromWrite, structureKindOf } from '../domain/edits'
 import { homeOf, projectDirOf } from '../domain/paths'
 import { parseHeredocWrites, resolveShellPath, summarizeCommand, tailOutput } from '../domain/shell'
-import { getChanges, getRoot, getWorkspaces, setChanges, setCodeScroll, setFiles, setFocus, setSelected } from '../store'
+import { getChanges, getRoot, getWorkspaces, setChanges, setCodeScroll, setFiles, setFocus, setHistoryScroll, setSelected } from '../store'
 import { scheduleChecks } from './checks'
 import { reanalyze } from './deps'
 import { resolveRel } from './workspaces'
@@ -38,6 +38,7 @@ export async function recordChange($: EngineInterface, a: Applied): Promise<void
   await setFocus($, rel)
   await setSelected($, null) // 新しい変更が来たら最新に戻す(ライブ感を優先)
   await setCodeScroll($, () => 0)
+  await setHistoryScroll($, () => 0)
   await setChanges($, list => [...list.filter(x => x.id !== a.id), change].slice(-KEEP))
   if (a.isNew && !rel.startsWith('~/')) await setFiles($, f => (f.includes(rel) ? f : [...f, rel]))
   await reanalyze($, rel, a.file, now)
@@ -57,6 +58,7 @@ export async function recordCommand($: EngineInterface, r: RanCommand): Promise<
   }
   await setSelected($, null)
   await setCodeScroll($, () => 0)
+  await setHistoryScroll($, () => 0)
   await setChanges($, list => [...list.filter(x => x.id !== r.id), entry].slice(-KEEP))
   if (r.exitCode !== 0) return
   for (const w of parseHeredocWrites(r.command)) {

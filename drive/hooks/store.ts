@@ -20,6 +20,7 @@ const depsDone = atom({ plugin: 'drive', key: 'depsDone' } as const, false)
 const tick = atom({ plugin: 'drive', key: 'tick' } as const, 0)
 const selected = atom({ plugin: 'drive', key: 'selected' } as const, null as string | null)
 const codeScroll = atom({ plugin: 'drive', key: 'codeScroll' } as const, 0)
+const historyScroll = atom({ plugin: 'drive', key: 'historyScroll' } as const, 0)
 
 type $ = EngineInterface
 
@@ -39,14 +40,15 @@ export type Frame = {
   tick: number
   selected: string | null
   codeScroll: number
+  historyScroll: number
 }
 
 export async function frame($: $): Promise<Frame> {
-  const [a, b, c, d, e, f, g, h, i, j, k, l, m, n] = await Promise.all([
+  const [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o] = await Promise.all([
     read($, root), read($, workspaces), read($, focus), read($, changes), read($, intent), read($, draft),
-    read($, checks), read($, turnId), read($, deps), read($, addedEdges), read($, depsDone), read($, tick), read($, selected), read($, codeScroll),
+    read($, checks), read($, turnId), read($, deps), read($, addedEdges), read($, depsDone), read($, tick), read($, selected), read($, codeScroll), read($, historyScroll),
   ])
-  return { root: a, workspaces: b, focus: c, changes: d, intent: e, draft: f, checks: g, turnId: h, deps: i, addedEdges: j, depsDone: k, tick: l, selected: m, codeScroll: n }
+  return { root: a, workspaces: b, focus: c, changes: d, intent: e, draft: f, checks: g, turnId: h, deps: i, addedEdges: j, depsDone: k, tick: l, selected: m, codeScroll: n, historyScroll: o }
 }
 
 export function getRoot($: $) {
@@ -115,6 +117,9 @@ export function setSelected($: $, v: string | null) {
 }
 export function setCodeScroll($: $, fn: (v: number) => number) {
   return update($, codeScroll, fn)
+}
+export function setHistoryScroll($: $, fn: (v: number) => number) {
+  return update($, historyScroll, fn)
 }
 
 export const PANE = 'drive'
