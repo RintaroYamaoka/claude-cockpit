@@ -288,7 +288,7 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
   return (
     <Box flexDirection="column" width={W + RIGHT_PAD} paddingRight={RIGHT_PAD}>
       {deps}
-      <Text dimColor>{'─'.repeat(W)}</Text>
+      <Text dimColor>{'┄'.repeat(W)}</Text>
       {intentRow}
       {heading}
       {body}
@@ -299,7 +299,7 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
           : '┄'.repeat(W)}
       </Text>
       {history}
-      <Text dimColor>{'─'.repeat(W)}</Text>
+      <Text dimColor>{'┄'.repeat(W)}</Text>
       <Box flexDirection="row" gap={1}>
         {shown ? <Button key="open" plain hotkey="o" label="開く" onPress={() => actions.open(shown)} /> : <Text dimColor>o: 開く</Text>}
         {hasRevertable ? <Button key="revert" plain hotkey="r" label="リバート" onPress={() => actions.revert()} /> : <Text dimColor>r: リバート</Text>}
