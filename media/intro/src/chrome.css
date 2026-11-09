@@ -1,0 +1,59 @@
+#root { position:absolute; inset:0; background:#e9e6df; overflow:hidden;
+  --ink:#1b1b1f; --tbg:#1e1e2e; --line:#45475a; --tx:#cdd6f4; --dim:#7f849c;
+  --now:#d97757; --ok:#a6e3a1; --bad:#f38ba8; --warn:#f9e2af;
+  --app:#5b9cf6; --lib:#2cb8a6; --db:#a97cf0; --oth:#8b93a1; --sel:#313244;
+  font-family:"Noto Sans JP", sans-serif; color:var(--ink); }
+#root * { box-sizing:border-box; margin:0; padding:0; }
+.mono { font-family:"JetBrains Mono","Noto Sans JP",monospace; }
+.stage { position:absolute; inset:0; }
+/* window */
+.win { position:absolute; left:120px; top:72px; width:1680px; height:760px; border-radius:14px; background:var(--tbg);
+  box-shadow:0 24px 60px rgba(0,0,0,.28), 0 2px 0 rgba(255,255,255,.35) inset; overflow:hidden; }
+.titlebar { height:40px; background:#11111b; display:flex; align-items:center; padding:0 16px; gap:8px; position:relative; }
+.titlebar .d { width:12px; height:12px; border-radius:50%; }
+.titlebar .d.r{background:#f38ba8}.titlebar .d.y{background:#f9e2af}.titlebar .d.g{background:#a6e3a1}
+.titlebar .ttl { position:absolute; left:0; right:0; text-align:center; color:#a6adc8; font:500 18px/40px "JetBrains Mono","Noto Sans JP",monospace; }
+.body { position:absolute; top:40px; left:0; right:0; bottom:0; font:400 22px/30px "JetBrains Mono","Noto Sans JP",monospace; color:var(--tx); }
+/* two columns: transcript (left) / cockpit (right) */
+.tx { position:absolute; left:0; top:0; bottom:0; width:640px; padding:0 18px; overflow:hidden; }
+.tx.full { width:1680px; }
+.vr { position:absolute; left:640px; top:0; bottom:0; width:1px; background:var(--line); transform-origin:50% 0; }
+.cp { position:absolute; left:641px; top:0; bottom:0; right:0; padding:0 18px; overflow:hidden; }
+.ln { white-space:pre; height:30px; overflow:hidden; position:relative; }
+.ln.wrap { white-space:pre-wrap; height:auto; }
+/* colours */
+.now{color:var(--now)} .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+.app{color:var(--app)} .lib{color:var(--lib)} .db{color:var(--db)} .oth{color:var(--oth)}
+.dim{color:var(--dim)} .b{font-weight:700} .plus{color:var(--ok)} .minus{color:var(--bad)}
+.hl { position:absolute; left:-18px; right:-18px; top:0; height:30px; background:var(--sel); opacity:0; }
+.cur { display:inline-block; width:12px; height:24px; background:var(--tx); vertical-align:-4px; margin-left:1px; }
+.ch { opacity:0; }
+/* toast (Claude Code) */
+.toast { position:absolute; left:18px; right:18px; bottom:100px; padding:10px 16px; border:1px solid var(--line); border-radius:8px; background:#181825;
+  color:var(--tx); font:400 20px/28px "JetBrains Mono","Noto Sans JP",monospace; white-space:pre-wrap; opacity:0; }
+/* cursor (pointer) */
+.ptr { position:absolute; width:56px; height:72px; opacity:0; z-index:5; filter:drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
+/* caption band */
+.cap { position:absolute; left:120px; top:884px; width:1300px; font:700 46px/64px "Noto Sans JP",sans-serif; color:var(--ink); letter-spacing:.01em; }
+.cap span { display:inline-block; opacity:0; }
+.cap .ac { color:#c2410c; }
+.sub { position:absolute; left:120px; top:960px; width:1300px; font:500 26px/38px "Noto Sans JP",sans-serif; color:#4a4a52; }
+.sub span { display:inline-block; opacity:0; }
+.keys { position:absolute; right:120px; top:892px; display:flex; gap:12px; align-items:center; opacity:0; }
+.keys kbd { font:600 34px/56px "JetBrains Mono",monospace; background:var(--tbg); color:var(--tx); border-radius:9px; padding:0 20px; display:inline-block; }
+.keys .plus { font:600 30px/56px "JetBrains Mono",monospace; color:#7a7a84; }
+/* labels on the pane */
+.lab { position:absolute; font:700 20px/28px "Noto Sans JP",sans-serif; color:#1e1e2e; background:#f5f1e8; padding:1px 12px; border-radius:6px; white-space:nowrap; opacity:0; z-index:4; }
+.lab.ac { background:var(--now); color:#1e1e2e; }
+/* stacked variants of one row (pick / swapTo toggle them) */
+.ln .v { position:absolute; left:0; top:0; white-space:pre; }
+.ln .v.off { opacity:0; }
+.tri2 { position:absolute; left:0; top:0; }
+.rel { position:relative; display:inline-block; }
+.txs { position:absolute; left:18px; right:18px; top:0; height:630px; overflow:hidden; }
+.txin { position:absolute; left:0; right:0; top:0; }
+.txb { position:absolute; left:18px; right:18px; bottom:0; height:90px; }
+.lab .n { display:inline-block; width:26px; height:26px; border-radius:50%; background:#1e1e2e; color:#f5f1e8; font:700 16px/26px "JetBrains Mono"; text-align:center; margin-right:8px; vertical-align:2px; }
+.lab.ac .n { background:#1e1e2e; color:var(--now); }
+
+.body { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
