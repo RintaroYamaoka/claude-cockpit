@@ -6,3 +6,4 @@ _vo/
 _*.json
 render.log
 assets/mix.wav
+__pycache__/
