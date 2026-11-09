@@ -15,12 +15,12 @@
 .titlebar .d { width:12px; height:12px; border-radius:50%; }
 .titlebar .d.r{background:#f38ba8}.titlebar .d.y{background:#f9e2af}.titlebar .d.g{background:#a6e3a1}
 .titlebar .ttl { position:absolute; left:0; right:0; text-align:center; color:#a6adc8; font:500 18px/40px "JetBrains Mono","Noto Sans JP",monospace; }
-.body { position:absolute; top:40px; left:0; right:0; bottom:0; font:400 22px/30px "JetBrains Mono","Noto Sans JP",monospace; color:var(--tx); }
+.body { position:absolute; top:40px; left:0; right:0; bottom:0; font:400 20px/30px "JetBrains Mono","Noto Sans JP",monospace; color:var(--tx); }
 /* two columns: transcript (left) / cockpit (right) */
-.tx { position:absolute; left:0; top:0; bottom:0; width:640px; padding:0 18px; overflow:hidden; }
+.tx { position:absolute; left:0; top:0; bottom:0; width:924px; padding:0 18px; overflow:hidden; }
 .tx.full { width:1680px; }
-.vr { position:absolute; left:640px; top:0; bottom:0; width:1px; background:var(--line); transform-origin:50% 0; }
-.cp { position:absolute; left:641px; top:0; bottom:0; right:0; padding:0 18px; overflow:hidden; }
+.vr { position:absolute; left:924px; top:0; bottom:0; width:1px; background:var(--line); transform-origin:50% 0; }
+.cp { position:absolute; left:925px; top:0; bottom:0; right:0; padding:0 18px; overflow:hidden; }
 .ln { white-space:pre; height:30px; overflow:hidden; position:relative; }
 .ln.wrap { white-space:pre-wrap; height:auto; }
 /* colours */
@@ -28,10 +28,10 @@
 .app{color:var(--app)} .lib{color:var(--lib)} .db{color:var(--db)} .oth{color:var(--oth)}
 .dim{color:var(--dim)} .b{font-weight:700} .plus{color:var(--ok)} .minus{color:var(--bad)}
 .hl { position:absolute; left:-18px; right:-18px; top:0; height:30px; background:var(--sel); opacity:0; }
-.cur { display:inline-block; width:12px; height:24px; background:var(--tx); vertical-align:-4px; margin-left:1px; }
+.cur { display:inline-block; width:11px; height:22px; background:var(--tx); vertical-align:-4px; margin-left:1px; }
 .ch { opacity:0; }
 /* toast (Claude Code) */
-.toast { position:absolute; left:18px; right:18px; bottom:100px; padding:10px 16px; border:1px solid var(--line); border-radius:8px; background:#181825;
+.toast { position:absolute; left:18px; width:888px; bottom:100px; padding:10px 16px; border:1px solid var(--line); border-radius:8px; background:#181825;
   color:var(--tx); font:400 20px/28px "JetBrains Mono","Noto Sans JP",monospace; white-space:pre-wrap; opacity:0; }
 /* cursor (pointer) */
 .ptr { position:absolute; width:56px; height:72px; opacity:0; z-index:5; filter:drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
@@ -45,7 +45,7 @@
 .keys kbd { font:600 34px/56px "JetBrains Mono",monospace; background:var(--tbg); color:var(--tx); border-radius:9px; padding:0 20px; display:inline-block; }
 .keys .plus { font:600 30px/56px "JetBrains Mono",monospace; color:#7a7a84; }
 /* labels on the pane */
-.lab { position:absolute; font:700 20px/28px "Noto Sans JP",sans-serif; color:#1e1e2e; background:#f5f1e8; padding:1px 12px; border-radius:6px; white-space:nowrap; opacity:0; z-index:4; }
+.lab { position:absolute; text-align:right; font:700 20px/28px "Noto Sans JP",sans-serif; color:#1e1e2e; background:#f5f1e8; padding:1px 12px; border-radius:6px; white-space:nowrap; opacity:0; z-index:4; }
 .lab.ac { background:var(--now); color:#1e1e2e; }
 /* stacked variants of one row (pick / swapTo toggle them) */
 .ln .v { position:absolute; left:0; top:0; white-space:pre; }
@@ -59,6 +59,48 @@
 .lab.ac .n { background:#1e1e2e; color:var(--now); }
 
 .body { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+/* VS Code(Dark Modern)の窓。o で開いた時だけ前に出る */
+.vsc { position:absolute; left:330px; top:120px; width:1480px; height:700px; border-radius:10px; overflow:hidden; background:#1f1f1f;
+  box-shadow:0 30px 80px rgba(0,0,0,.45), 0 0 0 1px #2b2b2b; font:400 13px/18px "Inter","Noto Sans JP",sans-serif; color:#cccccc; opacity:0; z-index:6; }
+.vsc-title { position:absolute; left:0; right:0; top:0; height:35px; background:#181818; border-bottom:1px solid #2b2b2b; display:flex; align-items:center; }
+.vsc-title .menu { display:flex; gap:14px; padding-left:14px; color:#cccccc; font-size:13px; }
+.vsc-title .ttl { position:absolute; left:0; right:0; text-align:center; color:#cccccc; font-size:12px; line-height:35px; }
+.vsc-title .wc { position:absolute; right:14px; top:0; display:flex; gap:22px; color:#cccccc; font-size:14px; line-height:35px; }
+.vsc-act { position:absolute; left:0; top:35px; bottom:22px; width:48px; background:#181818; border-right:1px solid #2b2b2b; }
+.vsc-act svg { display:block; width:24px; height:24px; margin:12px auto 14px; stroke:#868686; fill:none; stroke-width:1.5; }
+.vsc-act svg.on { stroke:#d7d7d7; }
+.vsc-act .bar { position:absolute; left:0; top:35px; width:2px; height:48px; background:#0078d4; }
+.vsc-side { position:absolute; left:48px; top:35px; bottom:22px; width:240px; background:#181818; border-right:1px solid #2b2b2b; }
+.vsc-side .h { padding:0 20px; font-size:11px; line-height:35px; letter-spacing:.04em; color:#cccccc; }
+.vsc-side .h2 { padding:0 10px; font-weight:700; font-size:11px; line-height:22px; color:#cccccc; }
+.vsc-side .row { height:22px; line-height:22px; padding-left:var(--ind); color:#cccccc; font-size:13px; white-space:nowrap; }
+.vsc-side .row.dir::before { content:"›"; display:inline-block; width:16px; color:#cccccc; }
+.vsc-side .row.dir.open::before { content:"⌄"; }
+.vsc-side .row.file::before { content:""; display:inline-block; width:16px; }
+.vsc-side .row.sel { background:#04395e; outline:1px solid #0078d4; outline-offset:-1px; }
+.vsc-side .row .ts { color:#519aba; font-weight:700; font-size:10px; margin-right:6px; }
+.vsc-side .row .js { color:#cbcb41; font-weight:700; font-size:10px; margin-right:6px; }
+.vsc-side .row .json { color:#cbcb41; font-weight:700; font-size:10px; margin-right:6px; }
+.vsc-ed { position:absolute; left:289px; right:0; top:35px; bottom:22px; background:#1f1f1f; }
+.vsc-tabs { height:35px; background:#181818; border-bottom:1px solid #2b2b2b; display:flex; }
+.vsc-tab { height:35px; padding:0 14px; display:flex; align-items:center; gap:8px; background:#1f1f1f; border-right:1px solid #2b2b2b; border-top:1px solid #0078d4; color:#ffffff; font-size:13px; }
+.vsc-tab .ts { color:#519aba; font-weight:700; font-size:10px; }
+.vsc-tab .x { color:#cccccc; margin-left:8px; }
+.vsc-crumb { height:22px; line-height:22px; padding-left:16px; color:#a9a9a9; font-size:12px; white-space:nowrap; }
+.vsc-code { position:absolute; left:0; right:0; top:57px; bottom:0; font:400 16px/24px "JetBrains Mono",monospace; color:#d4d4d4; font-variant-ligatures:none; }
+.vsc-ln { height:24px; display:flex; white-space:pre; position:relative; }
+.vsc-ln .gut { width:4px; margin-left:6px; }
+.vsc-ln .gut.add { background:#487e02; }
+.vsc-ln .no { width:56px; text-align:right; padding-right:22px; color:#6e7681; }
+.vsc-ln.curline .no { color:#cccccc; }
+.vsc-ln.curline::after { content:""; position:absolute; left:66px; right:0; top:0; bottom:0; border-top:1px solid #282828; border-bottom:1px solid #282828; pointer-events:none; }
+.vsc-ln .caret { display:inline-block; width:2px; height:22px; background:#aeafad; vertical-align:-4px; margin-left:-1px; }
+.vsc-status { position:absolute; left:0; right:0; bottom:0; height:22px; background:#181818; border-top:1px solid #2b2b2b; display:flex; align-items:center; font-size:12px; color:#cccccc; }
+.vsc-status .remote { height:22px; line-height:22px; padding:0 10px; background:#0078d4; color:#fff; display:flex; align-items:center; gap:6px; }
+.vsc-status .remote svg { width:14px; height:14px; stroke:#fff; fill:none; stroke-width:1.6; }
+.vsc-status .it { padding:0 8px; display:flex; align-items:center; gap:4px; }
+.vsc-status .it svg { width:14px; height:14px; stroke:#cccccc; fill:none; stroke-width:1.5; }
+.vsc-status .right { margin-left:auto; display:flex; }
 
 </style>
 <div id="root" data-composition-id="deps" data-width="1920" data-height="1080">
@@ -76,10 +118,10 @@
 <div class="ln" data-layout-allow-occlusion id="dp-w0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Write</span>(lib/validation.ts)</div>
 <div class="ln" data-layout-allow-occlusion id="dp-w1">  <span data-layout-allow-occlusion class="dim">⎿  Wrote 13 lines to lib/validation.ts</span></div>
 <div class="ln" data-layout-allow-occlusion> </div>
-<div class="ln" data-layout-allow-occlusion id="dp-th"><span data-layout-allow-occlusion class="now">✻</span> Thinking… <span data-layout-allow-occlusion class="dim">(12s · ↓ 2.1k tokens)</span></div></div></div><div class="txb"><div class="ln"><span class="dim" id="dp-hr">─────────────────────────────────────────────</span></div><div class="ln"><span class="dim">></span> <span class="cur" id="dp-cur"></span></div><div class="ln"><span class="dim">  ? for shortcuts</span></div></div></div><div class="vr"></div><div class="cp" id="dp-cp" data-layout-allow-overlap><div class="ln" id="dp-r0"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="lib b">lib/validation.ts</span><span class="dim">  exports LeadSchema, Lead, isEmail</span></div>
+<div class="ln" data-layout-allow-occlusion id="dp-th"><span data-layout-allow-occlusion class="now">✻</span> Thinking… <span data-layout-allow-occlusion class="dim">(12s · ↓ 2.1k tokens)</span></div></div></div><div class="txb"><div class="ln"><span class="dim" id="dp-hr">──────────────────────────────────────────────────────────────────────────</span></div><div class="ln"><span class="dim">></span> <span class="cur" id="dp-cur"></span></div><div class="ln"><span class="dim">  ? for shortcuts</span></div></div></div><div class="vr"></div><div class="cp" id="dp-cp" data-layout-allow-overlap><div class="ln" id="dp-r0"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="lib b">lib/validation.ts</span><span class="dim">  exports LeadSchema, Lead, isEmail</span></div>
 <div class="ln" id="dp-r1"><span class="dim">  imports     </span><span class="dim">zod</span><span class="ok pm">+</span><span>  </span></div>
 <div class="ln" id="dp-r2"><span class="dim">  dependents  </span><span class="b">2</span><span class="dim">  </span><span class="app">app/api  </span><span class="oth">tests  </span></div>
-<div class="ln" id="dp-r3"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="dp-r3"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
 <div class="ln" id="dp-r4"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="dim">zod で入力検証を型と一体にする</span></div>
 <div class="ln" id="dp-r5"><span class="lib">▎ lib/validation.ts</span><span class="dim"> · LeadSchema</span><span class="dim"> 10:40</span><span class="dim">  ↑0 ↓4</span></div>
 <div class="ln" id="dp-r6"><span class="v" id="dp-r6-val"> <span class="dim">@@ -1,3 +1,13 @@</span></span></div>
@@ -93,15 +135,15 @@
 <div class="ln" id="dp-r14"><span class="v" id="dp-r14-val"> <span class="plus">+</span></span></div>
 <div class="ln" id="dp-r15"><span class="v" id="dp-r15-val"> <span class="plus">+export type Lead = z.infer&lt;typeof LeadSchema&gt;</span></span></div>
 <div class="ln" id="dp-r16"><span class="dim">  └ </span><span class="ok">+11</span> <span class="bad">-1</span><span class="dim">  </span><span class="ok">✓ 型チェック</span><span class="dim"> 2.4s</span><span>  </span><span class="ok">✓ テスト</span><span class="dim"> 1.0s</span><span>  </span></div>
-<div class="ln" id="dp-r17"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="dp-r17"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
 <div class="ln" id="dp-r18"><span class="now">▸ </span><span class="">10:40 Write </span><span class="lib b">lib/validation.ts</span><span class=""> · LeadSchema</span><span class="dim"> +11 -1</span></div>
 <div class="ln" id="dp-r19"><span class="ok">✓ </span><span class="dim">10:39 Bash  $ </span><span class="">npm install zod</span></div>
 <div class="ln" id="dp-r20"> </div>
-<div class="ln" id="dp-r21"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="dp-r21"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
 <div class="ln" id="dp-r22"><span class="">o: 開く</span> <span class="">r: リバート</span> j: ↓ k: ↑</div></div></div></div>
-<div class="lab ac" id="dp-l0" style="left:1545px;top:113px"><span class="n">2</span>今触っているファイル</div>
-<div class="lab" id="dp-l1" style="left:1545px;top:143px">このファイルが使っているもの</div>
-<div class="lab" id="dp-l2" style="left:1545px;top:173px">このファイルを使っているもの</div>
+<div class="lab ac" id="dp-l0" style="right:884px;top:113px"><span class="n">2</span>今触っているファイル ▸</div>
+<div class="lab" id="dp-l1" style="right:884px;top:143px">このファイルが使っているもの ▸</div>
+<div class="lab" id="dp-l2" style="right:884px;top:173px">このファイルを使っているもの ▸</div>
 <p class="cap" id="dp-c1"><span>編集した瞬間に、</span><span>そのファイルの</span><span class="ac">依存</span><span>。</span></p>
 <p class="sub" id="dp-s1"><span>The moment a file is edited: what it imports, and who depends on it.</span></p>
 <p class="cap" id="dp-c2"><span>このセッションで</span><span class="ac">増えた依存</span><span>には +。</span></p>
@@ -141,7 +183,7 @@ function swapTo(sel, at, tl){ const el=document.querySelector(sel); if(!el) retu
 function focusRows(container, keep, at, tl){ const rows=[...document.querySelectorAll(container+" > .ln")].filter(r=>!keep.includes("#"+r.id));
   tl.to(rows,{opacity:0.22,duration:0.4,ease:"power2.inOut"},at); }
 function unfocusRows(container, at, tl){ tl.to(container+" > .ln",{opacity:1,duration:0.4,ease:"power2.inOut"},at); }
-function label(sel, at, tl){ tl.fromTo(sel,{opacity:0,x:-10},{opacity:1,x:0,duration:0.35,ease:"expo.out"},at); }
+function label(sel, at, tl){ tl.fromTo(sel,{opacity:0,x:10},{opacity:1,x:0,duration:0.35,ease:"expo.out"},at); }
 function unlabel(sel, at, tl){ tl.to(sel,{opacity:0,duration:0.2,ease:"power3.in"},at); }
 function scrollTo(sel, at, tl, y){ tl.to(sel,{y:y,duration:0.3,ease:"power2.out"},at); }
 

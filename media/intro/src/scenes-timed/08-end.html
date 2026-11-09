@@ -28,7 +28,7 @@
 <div class="ln" data-layout-allow-occlusion id="en-rv1">  直前の変更をリバートした。意図的な判断。</div>
 <div class="ln" data-layout-allow-occlusion id="en-rv2">  別の方法が要るか人に聞く。</div>
 <div class="ln" data-layout-allow-occlusion id="en-e8"> </div>
-<div class="ln" data-layout-allow-occlusion id="en-ak"><span data-layout-allow-occlusion class="now" data-layout-allow-occlusion>●</span> 了解。テストの追加は保留にします。</div></div></div><div class="txb"><div class="ln"><span class="dim" id="en-hr">─────────────────────────────────────────────</span></div><div class="ln"><span class="dim">></span> <span class="cur" id="en-cur"></span></div><div class="ln"><span class="dim">  ? for shortcuts</span></div></div></div><div id="en-card" style="position:absolute;left:0;top:0;width:640px;bottom:0;opacity:0">
+<div class="ln" data-layout-allow-occlusion id="en-ak"><span data-layout-allow-occlusion class="now" data-layout-allow-occlusion>●</span> 了解。テストの追加は保留にします。</div></div></div><div class="txb"><div class="ln"><span class="dim" id="en-hr">──────────────────────────────────────────────────────────────────────────</span></div><div class="ln"><span class="dim">></span> <span class="cur" id="en-cur"></span></div><div class="ln"><span class="dim">  ? for shortcuts</span></div></div></div><div id="en-card" style="position:absolute;left:0;top:0;width:924px;bottom:0;opacity:0">
   <div id="en-mark" class="mono" style="position:absolute;left:40px;top:150px;font:700 84px/100px 'JetBrains Mono';color:#cdd6f4"><span class="now">▶</span> cockpit</div>
   <div id="en-line" style="position:absolute;left:44px;top:270px;font:500 30px/44px 'Noto Sans JP';color:#a6adc8">AI が書くのを、計器で見る。</div>
   <div id="en-big" style="position:absolute;left:44px;top:330px;font:700 34px/50px 'Noto Sans JP';color:#cdd6f4"><span style="display:block">計器は 4 つ。</span><span style="display:block">操作は 2 つ。</span><span style="display:block">設定は無い。</span></div>
@@ -36,25 +36,25 @@
 </div><div class="vr"></div><div class="cp" id="en-cp" data-layout-allow-overlap><div class="ln" id="en-r0"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="oth b">tests/route.test.ts</span><span class="dim">  exports —</span></div>
 <div class="ln" id="en-r1"><span class="dim">  imports     </span><span class="app">app/api</span><span>  </span><span class="dim">vitest</span><span>  </span></div>
 <div class="ln" id="en-r2"><span class="dim">  dependents  —(エントリポイントか未参照)</span></div>
-<div class="ln" id="en-r3"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="en-r3"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
 <div class="ln" id="en-r4"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="dim">zod で入力検証を型と一体にする</span></div>
-<div class="ln" id="en-r5"><span class="oth">▎ tests/route.test.ts</span><span class="warn"> リバート済み</span></div>
-<div class="ln" id="en-r6"><span class="v" id="en-r6-t"> <span class="dim">@@ -9,4 +9,7 @@</span></span></div>
+<div class="ln" id="en-r5"><span class="oth">▎ tests/route.test.…</span><span class="warn"> リバート済み</span></div>
+<div class="ln" id="en-r6"><span class="v" id="en-r6-t"> <span class="dim">@@ -11,4 +11,7 @@</span></span></div>
 <div class="ln" id="en-r7"><span class="v" id="en-r7-t">    it('stores a valid lead', async () =&gt; {</span></div>
-<div class="ln" id="en-r8"><span class="v" id="en-r8-t">      const res = await post({ email: 'a@b.co', company: 'Acme', size: 12…</span></div>
+<div class="ln" id="en-r8"><span class="v" id="en-r8-t">      const res = await post({ email: 'a@b.co', company: …</span></div>
 <div class="ln" id="en-r9"><span class="v" id="en-r9-t">      expect(res.status).toBe(201)</span></div>
 <div class="ln" id="en-r10"><span class="v" id="en-r10-t">    })</span></div>
 <div class="ln" id="en-r11"><span class="v" id="en-r11-t"> <span class="plus">+  it('rejects a non-numeric size', async () =&gt; {</span></span></div>
-<div class="ln" id="en-r12"><span class="v" id="en-r12-t"> <span class="plus">+    expect((await post({ email: 'a@b.co', size: 'big' })).status).toBe(…</span></span></div>
+<div class="ln" id="en-r12"><span class="v" id="en-r12-t"> <span class="plus">+    expect((await post({ email: 'a@b.co', size: 'big' }…</span></span></div>
 <div class="ln" id="en-r13"><span class="v" id="en-r13-t"> <span class="plus">+  })</span></span></div>
 <div class="ln" id="en-r14"><span class="v" id="en-r14-t">  })</span></div>
 <div class="ln" id="en-r15"><span class="v" id="en-r15-t"></span></div>
 <div class="ln" id="en-r16"><span class="dim">  └ </span><span class="ok">+3</span> <span class="bad">-0</span><span class="dim">  </span><span class="ok">✓ 型チェック</span><span class="dim"> 2.3s</span><span>  </span><span class="ok">✓ テスト</span><span class="dim"> 1.0s</span><span>  </span></div>
-<div class="ln" id="en-r17"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ↑0 ↓2┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="en-r17"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ↑0 ↓2┄┄┄┄┄┄┄┄</span></div>
 <div class="ln" id="en-r18"><span class="now">▸ </span><span class="">10:44 Edit  </span><span class="oth b dim">tests/route.test.ts</span><span class="dim"> +3 -0</span><span class="warn"> ↶</span></div>
 <div class="ln" id="en-r19"><span class="ok">✓ </span><span class="dim">10:43 Edit  </span><span class="app">app/api/leads/route.ts</span><span class="dim"> · POST</span><span class="dim"> +5 -1</span></div>
 <div class="ln" id="en-r20"><span class="bad">✗ </span><span class="dim">10:42 Edit  </span><span class="app">app/api/leads/route.ts</span><span class="dim"> · POST</span><span class="dim"> +2 -5</span></div>
-<div class="ln" id="en-r21"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="en-r21"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
 <div class="ln" id="en-r22"><span class="">o: 開く</span> <span class="">r: リバート</span> j: ↓ k: ↑</div></div></div></div>
 <p class="cap" id="en-c1"><span class="ac">/plugin install cockpit</span></p>
 <p class="sub" id="en-s1"><span>github.com/RintaroYamaoka/claude-cockpit · MIT · ♪ Drift – Minimal / PodcastAC (CC BY)</span></p>

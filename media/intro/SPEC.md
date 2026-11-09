@@ -3,7 +3,7 @@ OUTPUT:  HyperFrames, 1920 x 1080, 30 fps
 TIME:    約 70 s x 30(ナレーションの長さで narrate.py が伸ばす)。BPM なし。字幕は日本語 1 行 ≤ 24 字 + 英語 1 行
 LOOK:    地 #e9e6df(質感なし)。墨 #1b1b1f。字幕の強調 #c2410c 一色
          端末窓:x120 y72 w1680 h760 r14、bg #1e1e2e、影 0 24px 60px rgba(0,0,0,.28)、タイトルバー 40px(#11111b)
-         窓の中:JetBrains Mono 22px / 行 30px(24 行)。左 = Claude Code の transcript 640px、縦罫 1px #45475a、右 = cockpit 1039px
+         窓の中:JetBrains Mono 20px / 行 30px(24 行)。左 = Claude Code の transcript 924px(55%)、縦罫 1px #45475a、右 = cockpit 755px(45%。実物の上限と同じ。60 列 − 右余白 2 = 58 列、pane.tsx の fit で切り詰める)
          cockpit の色の規則(palette.ts のまま):「今」#d97757(▶・ストリーミング中・▸)/ 状態 ✓ #a6e3a1 ✗ #f38ba8 警告 #f9e2af /
          層 app #5b9cf6・lib #2cb8a6・db #a97cf0・他 #8b93a1 / それ以外は本文 #cdd6f4 と薄 #7f849c
          字幕:Noto Sans JP 700 46px x120 y884 左寄せ。英語:Noto Sans JP 500 26px y960 #4a4a52。キー chip:JetBrains Mono 34px 右寄せ y892

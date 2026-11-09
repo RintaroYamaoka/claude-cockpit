@@ -1,7 +1,7 @@
 // src/gen.mjs — src/scenes/*.html を生成する。cockpit のペインは pane.tsx の行配分(24 行:依存 3・罫・意図・見出し・本文 10・結果・罫・履歴 3・罫・操作)をそのまま描く。
 import fs from 'node:fs';
 const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const W = 74;
+const W = 58; // 45% のペイン:60 列 − 右余白 2(pane.tsx の RIGHT_PAD)
 const RULE = '┄'.repeat(W);
 const ruleHid = (a,b) => ('┄'.repeat(W-14) + ` ↑${a} ↓${b}`).padEnd(W,'┄');
 const pad = n => String(n).padStart(4);
@@ -12,7 +12,7 @@ const row = (id, v) => typeof v === 'string' ? `<div class="ln" id="${id}">${v}<
   : `<div class="ln" id="${id}">` + v.map(([k,h],i)=>`<span class="v${i?' off':''}" id="${id}-${k}">${h}</span>`).join('') + `</div>`;
 
 const tri = `<span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span>`;
-const focusRow = (path, cls, exports) => `${tri} <span class="${cls} b">${path}</span><span class="dim">  exports ${exports}</span>`;
+const focusRow = (path, cls, exports) => `${tri} <span class="${cls} b">${fit(path,W-20)}</span><span class="dim">  exports ${exports}</span>`;
 const importsRow = items => `<span class="dim">  imports     </span>` + items.map(([m,cls,plus]) => `<span class="${cls}">${m}</span>${plus?`<span class="ok pm">+</span>`:''}<span>  </span>`).join('');
 const depsRow = (n, mods) => `<span class="dim">  dependents  </span><span class="b">${n}</span><span class="dim">  </span>` + mods.map(([m,cls])=>`<span class="${cls}">${m}  </span>`).join('');
 const intentRow = txt => `${tri} <span class="dim">${txt}</span>`;
@@ -22,31 +22,32 @@ const depsEmpty = `<span class="dim">  dependents  —</span>`;
 const intentEmpty = `${tri} `;
 const headingEmpty = `<span class="dim">まだ変更はありません。AI が Edit / Write / Bash すると、ここにコードが…</span>`;
 
-const hBash = (summary, time) => `<span class="ok">$ </span>${esc(summary)}<span class="ok"> ✓</span><span class="dim"> ${time}</span>`;
-const hStream = (path, n) => `<span class="now">▎ ${path} · 新規 ストリーミング中 ${n} 行 ▌</span>`;
-const hDiff = ({path, cls, symbol, kind, time, hidden, history, reverted}) => `<span class="${cls}">▎ ${path}</span>`
+const hBash = (summary, time) => `<span class="ok">$ </span>${esc(fit(summary,W-26))}<span class="ok"> ✓</span><span class="dim"> ${time}</span>`;
+const hStream = (path, n) => `<span class="now">▎ ${fit(path,W-34)} · 新規 ストリーミング中 ${n} 行 ▌</span>`;
+const hDiff = ({path, cls, symbol, kind, time, hidden, history, reverted}) => `<span class="${cls}">▎ ${fit(path,W-40)}</span>`
   + (symbol?`<span class="dim"> · ${symbol}</span>`:'') + (kind?`<span class="dim"> ▌${kind}</span>`:'')
   + (reverted?`<span class="warn"> リバート済み</span>`:`<span class="dim"> ${time}</span>`)
   + (hidden?`<span class="dim">  ↑0 ↓${hidden}</span>`:'') + (history?`<span class="now">  履歴</span>`:'');
 
 const ten = rows => { const r=[...rows]; while(r.length<10) r.push(''); return r.slice(0,10); };
 const diffBody = lines => ten(lines.map(l => { const e=esc(fit(l,W-1)); if(l.startsWith('+')) return ` <span class="plus">${e}</span>`; if(l.startsWith('-')) return ` <span class="minus">${e}</span>`; if(l.startsWith('@@')) return ` <span class="dim">${e}</span>`; return ' '+e; }));
-const bashBody = (cmd, out) => ten([` $ ${esc(cmd)}`, ' ', ...out.map(o=>` <span class="dim">${esc(o)}</span>`)]);
+const bashBody = (cmd, out) => ten([` $ ${esc(fit(cmd,W-3))}`, ' ', ...out.map(o=>` <span class="dim">${esc(fit(o,W-1))}</span>`)]);
 const streamBody = (lines, n) => { const tail=lines.slice(0,n).slice(-10); const start=n-tail.length;
-  return ten(tail.map((l,i)=>`<span class="dim">${pad(start+i+1)} </span>` + (i<tail.length-1?`<span class="dim">${esc(l)}</span>`:esc(l)))); };
+  return ten(tail.map((l,i)=>`<span class="dim">${pad(start+i+1)} </span>` + (i<tail.length-1?`<span class="dim">${esc(fit(l,W-5))}</span>`:esc(fit(l,W-5))))); };
 const emptyBody = ten([]);
 
 const MARK = {ok:'✓',fail:'✗',running:'⏳',skip:'–'};
 const resultRow = (plus, minus, checks, fail) => `<span class="dim">  └ </span><span class="ok">+${plus}</span> <span class="bad">-${minus}</span>`
   + (checks ? `<span class="dim">  </span>` + checks.map(([st,label,ms]) => `<span class="${st==='ok'?'ok':st==='fail'?'bad':'dim'}">${MARK[st]} ${label}</span>${ms?`<span class="dim"> ${ms}s</span>`:''}<span>  </span>`).join('') : '')
-  + (fail ? `<span class="bad">  ${esc(fail)}</span>` : '');
+  + (fail ? `<span class="bad">  ${esc(fit(fail,Math.floor(W/2)))}</span>` : '');
 
 const histFile = ({shown, mark, time, tool, path, cls, symbol, plus, minus, reverted}) => {
   const m = shown ? '▸' : mark, mcls = shown ? 'now' : mark==='✗' ? 'bad' : mark==='✓' ? 'ok' : 'dim';
-  return `<span class="${mcls}">${m} </span><span class="${shown?'':'dim'}">${time} ${tool.padEnd(5)} </span><span class="${cls}${shown?' b':''}${reverted?' dim':''}">${path}</span>`
+  const tail = (symbol ? symbol.length+3 : 0) + (` +${plus} -${minus}`).length + (reverted?2:0);
+  return `<span class="${mcls}">${m} </span><span class="${shown?'':'dim'}">${time} ${tool.padEnd(5)} </span><span class="${cls}${shown?' b':''}${reverted?' dim':''}">${fit(path,Math.max(12,W-16-tail))}</span>`
     + (symbol?`<span class="${shown?'':'dim'}"> · ${symbol}</span>`:'') + `<span class="dim"> +${plus} -${minus}</span>` + (reverted?`<span class="warn"> ↶</span>`:'');
 };
-const histBash = ({shown, time, summary}) => `<span class="${shown?'now':'ok'}">${shown?'▸':'✓'} </span><span class="${shown?'':'dim'}">${time} Bash  $ </span><span class="${shown?'b':''}">${esc(summary)}</span>`;
+const histBash = ({shown, time, summary}) => `<span class="${shown?'now':'ok'}">${shown?'▸':'✓'} </span><span class="${shown?'':'dim'}">${time} Bash  $ </span><span class="${shown?'b':''}">${esc(fit(summary,W-20))}</span>`;
 const ops = (hasShown, hasRevertable, history) => `<span class="${hasShown?'':'dim'}">o: 開く</span> <span class="${hasRevertable?'':'dim'}">r: リバート</span> j: ↓ k: ↑` + (history?' l: 最新へ':'');
 
 /** ペイン。rows: {r0,r1,r2,r4,r5,body:{key:[10]},r16,r17,r18,r19,r20,r22} 各値は html か variants */
@@ -77,16 +78,71 @@ const T = {
 function transcript(P, rows, {full=false, y=0}={}){
   return `<div class="tx${full?' full':''}" id="${P}-tx" data-layout-allow-overlap><div class="txs"><div class="txin" id="${P}-txin" style="transform:translateY(${y}px)">`
     + rows.map(([id,key,hidden]) => `<div class="ln" data-layout-allow-occlusion${id?` id="${P}-${id}"`:''}${hidden?' style="opacity:0"':''}>${T[key].replace(/<span /g,'<span data-layout-allow-occlusion ')}</div>`).join('\n')
-    + `</div></div><div class="txb"><div class="ln"><span class="dim" id="${P}-hr">${'─'.repeat(full?124:45)}</span></div><div class="ln"><span class="dim">></span> <span class="cur" id="${P}-cur"></span></div><div class="ln"><span class="dim">  ? for shortcuts</span></div></div></div>`;
+    + `</div></div><div class="txb"><div class="ln"><span class="dim" id="${P}-hr">${'─'.repeat(full?137:74)}</span></div><div class="ln"><span class="dim">></span> <span class="cur" id="${P}-cur"></span></div><div class="ln"><span class="dim">  ? for shortcuts</span></div></div></div>`;
 }
 const win = (P, inner) => `<div class="win" id="${P}-win"><div class="titlebar"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="ttl">leads-api — claude</span></div><div class="body" id="${P}-body">${inner}</div></div>`;
 const cap = (id, parts) => `<p class="cap" id="${id}">${parts.map(p=>p.startsWith('*')?`<span class="ac">${p.slice(1)}</span>`:`<span>${p}</span>`).join('')}</p>`;
 const sub = (id, parts) => `<p class="sub" id="${id}">${parts.map(p=>`<span>${p}</span>`).join('')}</p>`;
 const keys = (id, ks) => `<div class="keys" id="${id}">${ks.map(([kid,k],i)=>(i?`<span class="plus">then</span>`:'')+`<kbd id="${kid}">${k}</kbd>`).join('')}</div>`;
-const lab = (id, text, {x,y,ac=false,n=null}) => `<div class="lab${ac?' ac':''}" id="${id}" style="left:${x}px;top:${y}px">${n!==null?`<span class="n">${n}</span>`:''}${text}</div>`;
+const lab = (id, text, {x,y,ac=false,n=null}) => `<div class="lab${ac?' ac':''}" id="${id}" style="right:${1920-x}px;top:${y}px">${n!==null?`<span class="n">${n}</span>`:''}${text} ▸</div>`;
 const ptr = id => `<svg class="ptr" id="${id}" viewBox="0 0 28 36"><path d="M2 2 L2 28 L9 21 L14 33 L19 31 L14 19 L24 19 Z" fill="#fff" stroke="#1b1b1f" stroke-width="2" stroke-linejoin="round"/></svg>`;
+
+// ---------- VS Code(Dark Modern)。o で開いた時だけ前に出る。中身は tests/route.test.ts の編集後、カーソルはハンクの先頭行(editor.ts の `@@ -n +m` の m)
+const TEST_FILE = [
+  `import { describe, expect, it } from 'vitest'`, ``, `import { POST } from '@/app/api/leads/route'`, ``,
+  `const post = (body: unknown) => POST(new Request('http://x/api/leads', { method: 'POST', body: JSON.stringify(body) }))`, ``,
+  `describe('POST /api/leads', () => {`, `  it('rejects an invalid email', async () => {`, `    expect((await post({ email: 'nope' })).status).toBe(400)`, `  })`,
+  `  it('stores a valid lead', async () => {`, `    const res = await post({ email: 'a@b.co', company: 'Acme', size: 12 })`, `    expect(res.status).toBe(201)`, `  })`,
+  `  it('rejects a non-numeric size', async () => {`, `    expect((await post({ email: 'a@b.co', size: 'big' })).status).toBe(400)`, `  })`, `})`,
+];
+function hlTs(line){
+  const re=/('[^']*')|\b(import|from|const|async|await|export)\b|\b(\d+)\b|([A-Za-z_$][\w$]*)(?=\()|([A-Za-z_$][\w$]*)|(\s+)|(.)/g; let m, out='';
+  while((m=re.exec(line))){
+    if(m[1]) out+=`<span style="color:#ce9178">${esc(m[1])}</span>`;
+    else if(m[2]) out+=`<span style="color:${m[2]==='const'?'#569cd6':'#c586c0'}">${m[2]}</span>`;
+    else if(m[3]) out+=`<span style="color:#b5cea8">${m[3]}</span>`;
+    else if(m[4]) out+=`<span style="color:#dcdcaa">${m[4]}</span>`;
+    else if(m[5]) out+=`<span style="color:#9cdcfe">${m[5]}</span>`;
+    else out+=esc(m[0]);
+  }
+  return out;
+}
+const ICON = {
+  files:`<svg viewBox="0 0 24 24" class="on"><path d="M7 4h7l4 4v12H7z"/><path d="M14 4v4h4"/><path d="M4 8v13h11"/></svg>`,
+  search:`<svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg>`,
+  scm:`<svg viewBox="0 0 24 24"><circle cx="7" cy="5" r="2"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="9" r="2"/><path d="M7 7v10M17 11c0 3-10 2-10 6"/></svg>`,
+  debug:`<svg viewBox="0 0 24 24"><path d="M6 4l12 8-12 8z"/></svg>`,
+  ext:`<svg viewBox="0 0 24 24"><rect x="4" y="9" width="5" height="5"/><rect x="9" y="4" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/><rect x="14" y="9" width="5" height="5"/></svg>`,
+  remote:`<svg viewBox="0 0 24 24"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5"/></svg>`,
+  branch:`<svg viewBox="0 0 24 24"><circle cx="7" cy="5" r="2"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="9" r="2"/><path d="M7 7v10M17 11c0 3-10 2-10 6"/></svg>`,
+  sync:`<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2"/></svg>`,
+  err:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6"/></svg>`,
+  warn:`<svg viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v5M12 17v.5"/></svg>`,
+};
+function vscode(P, lines, cur, added){
+  const tree = [
+    ['dir open','app',0],['dir open','api',1],['dir open','leads',2],['file ts','route.ts',3],
+    ['dir open','lib',0],['file ts','db.ts',1],['file ts','validation.ts',1],
+    ['dir','node_modules',0],
+    ['dir open','tests',0],['file ts sel','route.test.ts',1],
+    ['file json','package.json',0],['file json','tsconfig.json',0],['file ts','vitest.config.ts',0],
+  ].map(([cls,name,d])=>`<div class="row ${cls}" style="--ind:${10+d*16}px">${cls.includes('ts')?'<span class="ts">TS</span>':cls.includes('json')?'<span class="json">{}</span>':''}${name}</div>`).join('');
+  const code = lines.map((l,i)=>{ const n=i+1; const isCur=n===cur; return `<div class="vsc-ln${isCur?' curline':''}"><span class="gut${added.includes(n)?' add':''}"></span><span class="no">${n}</span><span class="src">${isCur?`<span class="caret" id="${P}-vcaret"></span>`:''}${hlTs(l)}</span></div>`; }).join('');
+  return `<div class="vsc" id="${P}-vsc" data-layout-allow-overlap data-layout-allow-occlusion>
+  <div class="vsc-title"><div class="menu"><span>File</span><span>Edit</span><span>Selection</span><span>View</span><span>Go</span><span>Run</span><span>Terminal</span><span>Help</span></div><div class="ttl">route.test.ts — leads-api [WSL: Ubuntu] — Visual Studio Code</div><div class="wc"><span>—</span><span>▢</span><span>✕</span></div></div>
+  <div class="vsc-act"><div class="bar"></div>${ICON.files}${ICON.search}${ICON.scm}${ICON.debug}${ICON.ext}</div>
+  <div class="vsc-side"><div class="h">EXPLORER</div><div class="h2">⌄ LEADS-API [WSL: UBUNTU]</div>${tree}</div>
+  <div class="vsc-ed">
+    <div class="vsc-tabs"><div class="vsc-tab"><span class="ts">TS</span>route.test.ts<span class="x">✕</span></div></div>
+    <div class="vsc-crumb">tests › <span style="color:#519aba;font-weight:700;font-size:10px">TS</span> route.test.ts › describe('POST /api/leads') callback › it('stores a valid lead') callback</div>
+    <div class="vsc-code">${code}</div>
+  </div>
+  <div class="vsc-status"><span class="remote">${ICON.remote}WSL: Ubuntu</span><span class="it">${ICON.branch}main</span><span class="it">${ICON.sync}</span><span class="it">${ICON.err}0 ${ICON.warn}0</span><div class="right"><span class="it">Ln ${cur}, Col 1</span><span class="it">Spaces: 2</span><span class="it">UTF-8</span><span class="it">LF</span><span class="it">{} TypeScript</span></div></div>
+</div>`;
+}
+
 const ROWY = r => 112 + r*30; // ペインの r 行目の frame 上の y
-const LABX = 1545;
+const LABX = 1036; // ラベルの右端(仕切り x=1044 の左)
 
 // ---------- 中身(leads-api)
 const VALIDATION = [
@@ -101,7 +157,7 @@ const DIFF_ROUTE1 = [`@@ -2,9 +2,6 @@`, ` import { insertLead } from '@/lib/db'`
 const DIFF_ROUTE2 = [`@@ -7,3 +7,7 @@`, ` `, ` export async function POST(req: Request): Promise<Response> {`, `-  const body = LeadSchema.parse(await req.json())`,
   `+  const parsed = LeadSchema.safeParse(await req.json())`, `+  if (!parsed.success) {`, `+    return Response.json({ error: parsed.error.flatten() }, { status: 400 })`, `+  }`, `+  const body = parsed.data`,
   `   const lead = await insertLead({ email: body.email, company: body.company, size: body.size })`, `   return Response.json(lead, { status: 201 })`];
-const DIFF_TEST = [`@@ -9,4 +9,7 @@`, `   it('stores a valid lead', async () => {`, `     const res = await post({ email: 'a@b.co', company: 'Acme', size: 12 })`, `     expect(res.status).toBe(201)`, `   })`,
+const DIFF_TEST = [`@@ -11,4 +11,7 @@`, `   it('stores a valid lead', async () => {`, `     const res = await post({ email: 'a@b.co', company: 'Acme', size: 12 })`, `     expect(res.status).toBe(201)`, `   })`,
   `+  it('rejects a non-numeric size', async () => {`, `+    expect((await post({ email: 'a@b.co', size: 'big' })).status).toBe(400)`, `+  })`, ` })`];
 
 const F_ROUTE = focusRow('app/api/leads/route.ts','app','POST, runtime'), I_ROUTE = importsRow([['lib','lib',false]]), D_ROUTE = depsRow(1,[['tests','oth']]);
@@ -168,9 +224,9 @@ blink("#${P}-cur",0.2,5.9,tl);
 blink("#${P}-cp .tri",1.7,5.9,tl);
 words("#${P}-c1",0.3,tl,0.1); words("#${P}-s1",0.7,tl,0.05);
 tl.to(["#${P}-th","#${P}-u2","#${P}-u1","#${P}-u0","#${P}-w1","#${P}-w0","#${P}-b1","#${P}-b0"],{opacity:0,duration:0.12,ease:"power2.in",stagger:0.05},0.5);
-tl.to("#${P}-tx",{width:640,duration:0.6,ease:"power2.inOut"},1.3);
+tl.to("#${P}-tx",{width:924,duration:0.6,ease:"power2.inOut"},1.3);
 tl.to("#${P}-hr",{opacity:0,duration:0.1},1.3);
-tl.set("#${P}-hr",{textContent:"${'─'.repeat(45)}"},1.5);
+tl.set("#${P}-hr",{textContent:"${'─'.repeat(74)}"},1.5);
 tl.to("#${P}-hr",{opacity:1,duration:0.2},1.6);
 tl.fromTo("#${P}-vr",{opacity:1,scaleY:0},{opacity:1,scaleY:1,duration:0.5,ease:"expo.out"},1.6);
 tl.fromTo("#${P}-cp",{opacity:0,x:60},{opacity:1,x:0,duration:0.6,ease:"expo.out"},1.7);
@@ -196,7 +252,7 @@ unwords("#${P}-c2",5.6,tl); unwords("#${P}-s2",5.6,tl);
     r19:[['e',BLANK],['val',histBash({shown:false,...HB})]], r20:BLANK,
     r22:[['e',ops(false,false,false)],['bash',ops(true,false,false)],['val',ops(true,true,false)]],
   });
-  const lines = Array.from({length:13},(_,i)=>(1.9+i*0.34).toFixed(2));
+  const lines = Array.from({length:13},(_,i)=>(1.9+i*0.22).toFixed(2));
   scene('stream',9, `<div id="${P}-stage" class="stage clip" data-start="0" data-duration="9" data-track-index="0">
 ${win(P, transcript(P, rows) + `<div class="vr"></div>` + pn)}
 ${lab(`${P}-l1`,'書かれている最中のコード',{x:LABX,y:ROWY(5)+1,ac:true,n:1})}
@@ -279,7 +335,7 @@ unwords("#${P}-c2",7.6,tl); unwords("#${P}-s2",7.6,tl);
   const all = (k,t) => `swapTo("#${P}-r5-${k}",${t},tl); ${Array.from({length:10},(_,r)=>`swapTo("#${P}-r${6+r}-${k}",${t},tl);`).join(' ')} pick("#${P}-r18-${k}",${t},tl); pick("#${P}-r19-${k}",${t},tl); pick("#${P}-r20-${k}",${t},tl);`;
   scene('checks',10, `<div id="${P}-stage" class="stage clip" data-start="0" data-duration="10" data-track-index="0">
 ${win(P, transcript(P, rows) + `<div class="vr"></div>` + pn)}
-${lab(`${P}-l1`,'編集直後の型チェックと関連テスト',{x:LABX-120,y:ROWY(16)+1,ac:true,n:3})}
+${lab(`${P}-l1`,'編集直後の型チェックと関連テスト',{x:LABX,y:ROWY(16)+1,ac:true,n:3})}
 ${cap(`${P}-c1`, ['編集した','*直後','に、型チェックとテスト。'])}
 ${sub(`${P}-s1`, ['Right after each edit: typecheck and the related tests.'])}
 ${cap(`${P}-c2`, ['parse が例外を投げて、','テストが','*赤','。'])}
@@ -313,56 +369,65 @@ unwords("#${P}-c3",9.6,tl); unwords("#${P}-s3",9.6,tl);
 `);
 }
 
-// ===== 6 history(9 s):④ 履歴。行を押すとその時の画面。見ている間は新しい変更が来ても動かない
+// ===== 6 history(12 s):④ 履歴。✗ の行を押すと赤かった時の画面、Write の行を押すとその時の画面。見ている間は新しい変更が来ても動かない
 {
   const P='hs';
   const rows=[['p0','p0'],['p1','p1'],[null,'e'],['i0','i0'],['i1','i1'],['i2','i2'],[null,'e'],['b0','b0'],['b1','b1'],[null,'e'],['w0','w0'],['w1','w1'],[null,'e'],
     ['u0','u0'],['u1','u1'],['u2','u2'],[null,'e'],['v0','u0'],['v1','u1'],['v2','u2b'],[null,'e'],['th','th'],['e6','e',1],['t0','t0',1],['t1','t1',1],['t2','t2',1]];
+  const H_R1_H = hDiff({path:'app/api/leads/route.ts',cls:'app',symbol:'POST',kind:'ルーティング',time:'10:42',hidden:4,history:true});
   const pn = pane(P,{
     r0:[['route',F_ROUTE],['val',F_VAL]], r1:[['route',I_ROUTE],['val',I_VAL]], r2:[['route',D_ROUTE],['val',D_VAL]], r4:INTENT,
-    r5:[['r2',H_R2],['val',H_VAL_H]], body:{r2:diffBody(DIFF_ROUTE2), val:diffBody(DIFF_VALIDATION)},
-    r16:[['r2',resultRow(5,1,[['ok','型チェック','2.6'],['ok','テスト','1.0']])],['val',resultRow(11,1,[['ok','型チェック','2.4'],['ok','テスト','1.0']])]],
+    r5:[['r2',H_R2],['r1',H_R1_H],['val',H_VAL_H]], body:{r2:diffBody(DIFF_ROUTE2), r1:diffBody(DIFF_ROUTE1), val:diffBody(DIFF_VALIDATION)},
+    r16:[['r2',resultRow(5,1,[['ok','型チェック','2.6'],['ok','テスト','1.0']])],['r1',resultRow(2,5,[['ok','型チェック','2.8'],['fail','テスト','1.1']],'ZodError: Invalid email')],['val',resultRow(11,1,[['ok','型チェック','2.4'],['ok','テスト','1.0']])]],
     r17:[['a',`<span class="dim">${ruleHid(0,1)}</span>`],['b',`<span class="dim">${ruleHid(1,1)}</span>`]],
-    r18:[['r2',histFile({shown:true,...HR2})],['val',histFile({shown:false,...HR2})]],
-    r19:[['r2',histFile({shown:false,...HR1})],['val',histFile({shown:false,...HR1})]],
+    r18:[['r2',histFile({shown:true,...HR2})],['h',histFile({shown:false,...HR2})]],
+    r19:[['r2',histFile({shown:false,...HR1})],['r1',histFile({shown:true,...HR1})]],
     r20:[['r2',histFile({shown:false,...HV})],['val',histFile({shown:true,...HV})]],
-    r22:[['r2',ops(true,true,false)],['val',ops(true,true,true)]]});
-  scene('history',9, `<div id="${P}-stage" class="stage clip" data-start="0" data-duration="9" data-track-index="0">
-${win(P, transcript(P, rows, {y:-30}) + `<div class="vr"></div>` + pn + `<div class="hl" id="${P}-hl" style="position:absolute;left:641px;right:0;top:${20*30}px;height:30px;background:#313244;opacity:0"></div>`)}
-${lab(`${P}-l1`,'履歴',{x:LABX+200,y:ROWY(18)+1,ac:true,n:4})}
+    r22:[['r2',ops(true,true,false)],['h',ops(true,true,true)]]});
+  const body = (k,t) => `swapTo("#${P}-r5-${k}",${t},tl); ${Array.from({length:10},(_,r)=>`swapTo("#${P}-r${6+r}-${k}",${t},tl);`).join(' ')} pick("#${P}-r16-${k}",${t},tl);`;
+  scene('history',12, `<div id="${P}-stage" class="stage clip" data-start="0" data-duration="12" data-track-index="0">
+${win(P, transcript(P, rows, {y:-30}) + `<div class="vr"></div>` + pn + `<div class="hl" id="${P}-hl1" style="position:absolute;left:925px;right:0;top:${19*30}px;height:30px;background:#313244;opacity:0"></div><div class="hl" id="${P}-hl2" style="position:absolute;left:925px;right:0;top:${20*30}px;height:30px;background:#313244;opacity:0"></div>`)}
+${lab(`${P}-l1`,'履歴(新しいものが上)',{x:LABX,y:ROWY(18)+1,ac:true,n:4})}
 ${ptr(`${P}-ptr`)}
 ${cap(`${P}-c1`, ['行を押すと、','*その時の画面','に戻る。'])}
-${sub(`${P}-s1`, ['Click a row to go back to that moment: body, result, dependencies.'])}
+${sub(`${P}-s1`, ['Click a row: the body, the result and the dependencies of that moment come back.'])}
 ${cap(`${P}-c2`, ['見ている間は、','新しい変更が来ても','*動かない','。'])}
-${sub(`${P}-s2`, ['While you look back, new changes do not move the screen.'])}
+${sub(`${P}-s2`, ['While you look back, a new change does not move the screen.'])}
 </div>`, `
-blink("#${P}-cur",0.2,8.9,tl);
-blink("#${P}-cp .tri",0.2,8.9,tl);
+blink("#${P}-cur",0.2,11.9,tl);
+blink("#${P}-cp .tri",0.2,11.9,tl);
 words("#${P}-c1",0.4,tl,0.1); words("#${P}-s1",0.8,tl,0.05);
 focusRows("#${P}-cp",["#${P}-r18","#${P}-r19","#${P}-r20","#${P}-r17"],0.5,tl);
 label("#${P}-l1",0.8,tl);
-tl.fromTo("#${P}-ptr",{opacity:0,x:1500,y:900},{opacity:1,x:1500,y:900,duration:0.1},1.45);
-tl.to("#${P}-ptr",{x:800,y:722,duration:0.9,ease:"power2.inOut"},1.6);
-tl.to("#${P}-ptr",{scale:0.85,duration:0.08,ease:"power2.in",transformOrigin:"10% 5%"},2.7);
-tl.to("#${P}-ptr",{scale:1,duration:0.2,ease:"back.out(2)"},2.78);
-tl.fromTo("#${P}-hl",{opacity:0},{opacity:1,duration:0.08},2.75);
-tl.to("#${P}-hl",{opacity:0,duration:0.3},2.95);
-unfocusRows("#${P}-cp",2.8,tl); unlabel("#${P}-l1",2.8,tl);
-swapTo("#${P}-r5-val",2.85,tl); ${Array.from({length:10},(_,r)=>`swapTo("#${P}-r${6+r}-val",2.85,tl);`).join(' ')}
-swapTo("#${P}-r0-val",2.85,tl); swapTo("#${P}-r1-val",2.85,tl); swapTo("#${P}-r2-val",2.85,tl);
-pick("#${P}-r16-val",2.9,tl); pick("#${P}-r18-val",2.9,tl); pick("#${P}-r19-val",2.9,tl); pick("#${P}-r20-val",2.9,tl); pick("#${P}-r22-val",2.9,tl);
-tl.to("#${P}-ptr",{x:1500,y:900,opacity:0,duration:0.6,ease:"power2.in"},3.6);
-unwords("#${P}-c1",4.6,tl); unwords("#${P}-s1",4.6,tl);
-words("#${P}-c2",5.0,tl,0.1); words("#${P}-s2",5.4,tl,0.05);
-rise("#${P}-t0",5.6,tl,8); rise("#${P}-t1",5.9,tl,8); rise("#${P}-t2",6.05,tl,8);
-scrollTo("#${P}-txin",5.6,tl,-150);
-pick("#${P}-r17-b",6.0,tl);
-flip("#${P}-r17-b",6.0,tl,{color:"#d97757"},{color:"#7f849c"},0.8);
-unwords("#${P}-c2",8.6,tl); unwords("#${P}-s2",8.6,tl);
+tl.fromTo("#${P}-ptr",{opacity:0,x:1500,y:900},{opacity:1,x:1500,y:900,duration:0.1,ease:"none"},1.45);
+tl.to("#${P}-ptr",{x:1084,y:692,duration:0.9,ease:"power2.inOut"},1.6);
+tl.to("#${P}-ptr",{scale:0.85,duration:0.08,ease:"power2.in",transformOrigin:"10% 5%"},2.6);
+tl.to("#${P}-ptr",{scale:1,duration:0.2,ease:"back.out(2)"},2.68);
+tl.fromTo("#${P}-hl1",{opacity:0},{opacity:1,duration:0.06,ease:"none"},2.62);
+tl.to("#${P}-hl1",{opacity:0,duration:0.3,ease:"power2.out"},2.85);
+unfocusRows("#${P}-cp",2.7,tl); unlabel("#${P}-l1",2.7,tl);
+${body('r1',2.75)}
+pick("#${P}-r18-h",2.8,tl); pick("#${P}-r19-r1",2.8,tl); pick("#${P}-r22-h",2.8,tl);
+tl.to("#${P}-ptr",{y:722,duration:0.45,ease:"power2.inOut"},4.4);
+tl.to("#${P}-ptr",{scale:0.85,duration:0.08,ease:"power2.in",transformOrigin:"10% 5%"},4.95);
+tl.to("#${P}-ptr",{scale:1,duration:0.2,ease:"back.out(2)"},5.03);
+tl.fromTo("#${P}-hl2",{opacity:0},{opacity:1,duration:0.06,ease:"none"},4.97);
+tl.to("#${P}-hl2",{opacity:0,duration:0.3,ease:"power2.out"},5.2);
+${body('val',5.1)}
+swapTo("#${P}-r0-val",5.1,tl); swapTo("#${P}-r1-val",5.1,tl); swapTo("#${P}-r2-val",5.1,tl);
+pick("#${P}-r19-r2",5.15,tl); pick("#${P}-r20-val",5.15,tl);
+tl.to("#${P}-ptr",{x:1500,y:900,opacity:0,duration:0.6,ease:"power2.in"},5.8);
+unwords("#${P}-c1",6.4,tl); unwords("#${P}-s1",6.4,tl);
+words("#${P}-c2",6.8,tl,0.1); words("#${P}-s2",7.2,tl,0.05);
+rise("#${P}-t0",7.3,tl,8); rise("#${P}-t1",7.6,tl,8); rise("#${P}-t2",7.75,tl,8);
+scrollTo("#${P}-txin",7.3,tl,-150);
+pick("#${P}-r17-b",7.7,tl);
+flip("#${P}-r17-b",7.7,tl,{color:"#d97757"},{color:"#7f849c"},0.8);
+unwords("#${P}-c2",11.6,tl); unwords("#${P}-s2",11.6,tl);
 `);
 }
 
-// ===== 7 ops(9 s):o で VS Code の該当行、r r でリバート(Claude にも伝わる)
+// ===== 7 ops(12 s):l で最新へ。o で VS Code(WSL リモート)の該当行が開く。r r でリバート、Claude にも伝わる
 {
   const P='op';
   const rows=[['p0','p0'],['p1','p1'],[null,'e'],['i0','i0'],['i1','i1'],['i2','i2'],[null,'e'],['b0','b0'],['b1','b1'],[null,'e'],['w0','w0'],['w1','w1'],[null,'e'],
@@ -377,36 +442,40 @@ unwords("#${P}-c2",8.6,tl); unwords("#${P}-s2",8.6,tl);
     r19:[['h',histFile({shown:false,...HR1})],['t',histFile({shown:false,...HR2})]], r20:[['h',histFile({shown:true,...HV})],['t',histFile({shown:false,...HR1})]],
     r22:[['h',ops(true,true,true)],['t',ops(true,true,false)]]});
   const toLatest = (t) => `swapTo("#${P}-r5-t",${t},tl); ${Array.from({length:10},(_,r)=>`swapTo("#${P}-r${6+r}-t",${t},tl);`).join(' ')} swapTo("#${P}-r0-t",${t},tl); swapTo("#${P}-r1-t",${t},tl); swapTo("#${P}-r2-t",${t},tl); pick("#${P}-r16-t",${t},tl); pick("#${P}-r17-t",${t},tl); pick("#${P}-r18-t",${t},tl); pick("#${P}-r19-t",${t},tl); pick("#${P}-r20-t",${t},tl); pick("#${P}-r22-t",${t},tl);`;
-  scene('ops',10, `<div id="${P}-stage" class="stage clip" data-start="0" data-duration="10" data-track-index="0">
-${win(P, transcript(P, rows, {y:-150}) + `<div class="vr"></div>` + pn + `<div class="toast" id="${P}-toast" style="left:18px;width:604px;right:auto">VS Code で開きました: leads-api › tests/route.test.ts:13</div>`)}
+  scene('ops',12, `<div id="${P}-stage" class="stage clip" data-start="0" data-duration="12" data-track-index="0">
+${win(P, transcript(P, rows, {y:-150}) + `<div class="vr"></div>` + pn + `<div class="toast" id="${P}-toast">VS Code で開きました: leads-api › tests/route.test.ts:11</div>`)}
+${vscode(P, TEST_FILE, 11, [15,16,17])}
 ${keys(`${P}-k0`, [[`${P}-kl`,'l']])}
 ${keys(`${P}-k1`, [[`${P}-ko`,'o']])}
 ${keys(`${P}-k2`, [[`${P}-kr1`,'r'],[`${P}-kr2`,'r']])}
 ${cap(`${P}-c1`, ['*o',' で、その変更を ','VS Code の該当行に。'])}
-${sub(`${P}-s1`, ['o opens that change in VS Code, at the line.'])}
+${sub(`${P}-s1`, ['o opens that change in VS Code at its line. On WSL it opens the Windows VS Code as a WSL remote.'])}
 ${cap(`${P}-c2`, ['*r',' を 2 回で、','直前の変更を戻す。','Claude にも伝わる。'])}
 ${sub(`${P}-s2`, ['r twice reverts the last change. Claude is told it was deliberate.'])}
 </div>`, `
-blink("#${P}-cur",0.2,9.9,tl);
-blink("#${P}-cp .tri",0.2,9.9,tl);
+blink("#${P}-cur",0.2,11.9,tl);
+blink("#${P}-cp .tri",0.2,11.9,tl);
 keys("#${P}-k0",0.2,tl); press("#${P}-kl",0.5,tl);
 ${toLatest(0.75)}
 unkeys("#${P}-k0",1.2,tl);
 words("#${P}-c1",1.4,tl,0.1); words("#${P}-s1",1.8,tl,0.05);
 keys("#${P}-k1",1.6,tl); press("#${P}-ko",1.9,tl);
 tl.fromTo("#${P}-toast",{opacity:0,y:10},{opacity:1,y:0,duration:0.3,ease:"expo.out"},2.2);
-tl.to("#${P}-toast",{opacity:0,duration:0.25,ease:"power3.in"},4.8);
-unwords("#${P}-c1",5.2,tl); unwords("#${P}-s1",5.2,tl); unkeys("#${P}-k1",5.2,tl);
-words("#${P}-c2",5.6,tl,0.1); words("#${P}-s2",6.0,tl,0.05);
-keys("#${P}-k2",5.5,tl); press("#${P}-kr1",5.9,tl); press("#${P}-kr2",6.25,tl);
-pick("#${P}-r5-rv",6.5,tl); pick("#${P}-r18-rv",6.5,tl); pop("#${P}-r18-rv",6.5,tl);
-pick("#${P}-r16-run",6.5,tl);
-rise("#${P}-rv0",6.8,tl,8); rise("#${P}-rv1",6.95,tl,8); rise("#${P}-rv2",7.1,tl,8);
-scrollTo("#${P}-txin",6.8,tl,-270);
-pick("#${P}-r16-ok",7.9,tl); pop("#${P}-r16-ok",7.9,tl);
-rise("#${P}-ak",8.2,tl,8);
-scrollTo("#${P}-txin",8.2,tl,-330);
-unwords("#${P}-c2",9.6,tl); unwords("#${P}-s2",9.6,tl); unkeys("#${P}-k2",9.6,tl);
+tl.fromTo("#${P}-vsc",{opacity:0,scale:0.72,filter:"blur(6px)",transformOrigin:"52% 22%"},{opacity:1,scale:1,filter:"blur(0px)",duration:0.5,ease:"expo.out"},2.5);
+blink("#${P}-vcaret",3.0,6.0,tl);
+tl.to("#${P}-toast",{opacity:0,duration:0.25,ease:"power3.in"},5.2);
+tl.to("#${P}-vsc",{opacity:0,scale:0.96,duration:0.3,ease:"power3.in"},6.0);
+unwords("#${P}-c1",6.4,tl); unwords("#${P}-s1",6.4,tl); unkeys("#${P}-k1",6.0,tl);
+words("#${P}-c2",6.8,tl,0.1); words("#${P}-s2",7.2,tl,0.05);
+keys("#${P}-k2",6.7,tl); press("#${P}-kr1",7.1,tl); press("#${P}-kr2",7.45,tl);
+pick("#${P}-r5-rv",7.7,tl); pick("#${P}-r18-rv",7.7,tl); pop("#${P}-r18-rv",7.7,tl);
+pick("#${P}-r16-run",7.7,tl);
+rise("#${P}-rv0",8.0,tl,8); rise("#${P}-rv1",8.15,tl,8); rise("#${P}-rv2",8.3,tl,8);
+scrollTo("#${P}-txin",8.0,tl,-270);
+pick("#${P}-r16-ok",9.1,tl); pop("#${P}-r16-ok",9.1,tl);
+rise("#${P}-ak",9.4,tl,8);
+scrollTo("#${P}-txin",9.4,tl,-330);
+unwords("#${P}-c2",11.6,tl); unwords("#${P}-s2",11.6,tl); unkeys("#${P}-k2",11.6,tl);
 `);
 }
 
@@ -418,7 +487,7 @@ unwords("#${P}-c2",9.6,tl); unwords("#${P}-s2",9.6,tl); unkeys("#${P}-k2",9.6,tl
   const pn = pane(P,{r0:F_TEST, r1:I_TEST, r2:D_TEST, r4:INTENT, r5:H_T_RV, body:{t:diffBody(DIFF_TEST)},
     r16:resultRow(3,0,[['ok','型チェック','2.3'],['ok','テスト','1.0']]), r17:`<span class="dim">${ruleHid(0,2)}</span>`,
     r18:histFile({shown:true,...HT,reverted:true}), r19:histFile({shown:false,...HR2}), r20:histFile({shown:false,...HR1}), r22:ops(true,true,false)});
-  const card = `<div id="${P}-card" style="position:absolute;left:0;top:0;width:640px;bottom:0;opacity:0">
+  const card = `<div id="${P}-card" style="position:absolute;left:0;top:0;width:924px;bottom:0;opacity:0">
   <div id="${P}-mark" class="mono" style="position:absolute;left:40px;top:150px;font:700 84px/100px 'JetBrains Mono';color:#cdd6f4"><span class="now">▶</span> cockpit</div>
   <div id="${P}-line" style="position:absolute;left:44px;top:270px;font:500 30px/44px 'Noto Sans JP';color:#a6adc8">AI が書くのを、計器で見る。</div>
   <div id="${P}-big" style="position:absolute;left:44px;top:330px;font:700 34px/50px 'Noto Sans JP';color:#cdd6f4"><span style="display:block">計器は 4 つ。</span><span style="display:block">操作は 2 つ。</span><span style="display:block">設定は無い。</span></div>

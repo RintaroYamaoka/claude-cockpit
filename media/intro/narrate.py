@@ -22,10 +22,10 @@ SC=[
  ('checks',10,[(0.4,'三つ目。編集した直後に、型チェックと、関連テストの結果が返る。'),(3.6,None),
                (4.0,'パースが例外を投げて、テストが赤。'),(6.2,None),
                (6.5,'セーフパースに直して、緑。壊れた瞬間に、その場で分かる。'),(9.6,None)]),
- ('history',9,[(0.4,'四つ目。履歴。行を押すと、その時の本文と、結果と、依存に戻る。'),(4.6,None),
-               (5.0,'見ている間は、新しい変更が来ても、画面は動かない。'),(8.6,None)]),
- ('ops',10,[(1.4,'操作は二つ。オーで、その変更を、ブイエスコードの該当行に開く。'),(5.2,None),
-            (5.6,'アールを二回で、直前の変更を戻す。クロードにも、人が戻したと伝わる。'),(9.6,None)]),
+ ('history',12,[(0.4,'四つ目。履歴。行を押すと、その時の本文と、結果と、依存に戻る。赤かった時の画面にも、その前にも。'),(6.4,None),
+                (6.8,'見ている間は、新しい変更が来ても、画面は動かない。'),(11.6,None)]),
+ ('ops',12,[(1.4,'操作は二つ。オーで、その変更を、ブイエスコードの該当行に開く。ダブリューエスエルなら、ウィンドウズ側のブイエスコードが、リモートで開く。'),(6.4,None),
+            (6.8,'アールを二回で、直前の変更を戻す。クロードにも、人が戻したと伝わる。'),(11.6,None)]),
  ('end',7,[(0.6,'計器は四つ、操作は二つ。設定は無い。プラグイン インストール、コックピット。'),(7.0,None)]),
 ]
 FILES={re.sub(r'^\d+-','',os.path.basename(f))[:-5]:f for f in glob.glob('src/scenes/*.html')}
@@ -78,13 +78,15 @@ for sid,dur,anc in SC:
 TOTAL=round(cur,2); print('TOTAL',TOTAL,round(TOTAL/60,2),'min')
 
 # 3) 効果音:press → key、pop → pop、大きな遷移に whoosh(旧時刻)
-WHOOSH={'reveal':[0.5,1.3],'stream':[6.5],'checks':[6.9],'history':[2.85],'end':[0.3]}
+WHOOSH={'reveal':[0.5,1.3],'stream':[6.5],'checks':[6.9],'history':[2.75,5.1],'ops':[2.5,6.0],'end':[0.3]}
+CLICK={'history':[2.6,4.95]}
 SFX=[]
 for sid,dur,anc in SC:
     src=open(FILES[sid],encoding='utf-8').read().split('<!--SCRIPT-->')[1]; m=NEW[sid]['map']; st=NEW[sid]['start']
     for g in re.finditer(r'\bpress\(("[^"]*"),\s*'+NUM,src): SFX.append(('assets/audio/key.mp3',st+m(float(g.group(2))),.45))
     for g in re.finditer(r'\bpop\(("[^"]*"),\s*'+NUM,src): SFX.append(('assets/audio/pop.mp3',st+m(float(g.group(2))),.4))
     for t in WHOOSH.get(sid,[]): SFX.append(('assets/audio/whoosh.mp3',st+m(t),.5))
+    for t in CLICK.get(sid,[]): SFX.append(('assets/audio/key.mp3',st+m(t),.6))
 json.dump([dict(src=a,at=round(t,3),vol=v) for a,t,v in sorted(SFX,key=lambda x:x[1])],open('_sfx.json','w'),indent=0)
 print('sfx',len(SFX))
 

@@ -30,6 +30,6 @@ function swapTo(sel, at, tl){ const el=document.querySelector(sel); if(!el) retu
 function focusRows(container, keep, at, tl){ const rows=[...document.querySelectorAll(container+" > .ln")].filter(r=>!keep.includes("#"+r.id));
   tl.to(rows,{opacity:0.22,duration:0.4,ease:"power2.inOut"},at); }
 function unfocusRows(container, at, tl){ tl.to(container+" > .ln",{opacity:1,duration:0.4,ease:"power2.inOut"},at); }
-function label(sel, at, tl){ tl.fromTo(sel,{opacity:0,x:-10},{opacity:1,x:0,duration:0.35,ease:"expo.out"},at); }
+function label(sel, at, tl){ tl.fromTo(sel,{opacity:0,x:10},{opacity:1,x:0,duration:0.35,ease:"expo.out"},at); }
 function unlabel(sel, at, tl){ tl.to(sel,{opacity:0,duration:0.2,ease:"power3.in"},at); }
 function scrollTo(sel, at, tl, y){ tl.to(sel,{y:y,duration:0.3,ease:"power2.out"},at); }
