@@ -20,7 +20,6 @@ type PaneInput = Extract<RenderInput, { component: 'Pane' }>
 export type Actions = { revert: () => void; select: (id: string | null) => void; scroll: (by: number) => void; open: (change: Change) => void }
 
 const DEPS_ROWS = 3 // 対象ファイル・imports・dependents
-const NOTE_ROWS = 2 // 失敗の行
 
 /**
  * 行の配分(固定):依存 3、罫 1、意図 1、見出し 1、本文、結果 1、補足 2、罫 1、履歴(残り)、罫 1、操作 1。
@@ -28,11 +27,12 @@ const NOTE_ROWS = 2 // 失敗の行
  * ui.scroll のフックも同じ計算で「ホイールが履歴の上か」を判定する。
  */
 export function layout(windowRows: number) {
-  const R = Math.max(14, windowRows) // 木は窓にぴったり収める
-  const fixed = DEPS_ROWS + 1 + 1 + 1 + 1 + NOTE_ROWS + 1 + 1 + 1
+  // 窓の最後の 1 行はペインが自分用に使う(そこに描くと最下行が隠れる)ので、中身は窓 − 1 行
+  const R = Math.max(12, windowRows - 1)
+  const fixed = DEPS_ROWS + 1 + 1 + 1 + 1 + 1 + 1 + 1 // 罫・意図・見出し・結果・罫・罫・操作
   const historyRows = Math.max(2, Math.floor((R - fixed) * 0.25)) // 履歴を先に決め、残りは全部コードへ
   const bodyRows = Math.max(4, R - fixed - historyRows)
-  const historyStart = DEPS_ROWS + 1 + 1 + 1 + bodyRows + 1 + NOTE_ROWS + 1 // 履歴の最初の行(0 始まり)
+  const historyStart = DEPS_ROWS + 1 + 1 + 1 + bodyRows + 1 + 1 // 履歴の最初の行(0 始まり)
   return { R, bodyRows, historyRows, historyStart }
 }
 
@@ -132,7 +132,6 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
   let heading: ReturnType<typeof Text>
   let body: ReturnType<typeof Box>
   let result: ReturnType<typeof Text>
-  const notes: Array<{ text: string; color: string }> = []
 
   if (f.draft && f.draft.text.length > 0 && !isHistory) {
     const d = f.draft
@@ -202,6 +201,8 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
       result = <Text key="r"> </Text>
     } else {
       const { plus, minus } = countLines(c.diff)
+      // チェック失敗の先頭行は結果の行に続けて出す(補足行は持たない)
+      const firstFailure = check?.items.find(i => i.status === 'fail')?.detail[0] ?? null
       // diff はスクロール可能:offset 行目から(@@ の 1 行を除いた)bodyRows − 1 行。見えていない行数は見出しに
       const win = windowHunk(c.diff, f.codeScroll, bodyRows - 1)
       heading = (
@@ -236,9 +237,9 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
               ))}
             </Text>
           ) : null}
+          {firstFailure ? <Text color={FAIL}>  {fit(firstFailure, Math.max(10, Math.floor(W / 2)))}</Text> : null}
         </Text>
       )
-      for (const i of check?.items ?? []) if (i.status === 'fail') for (const line of i.detail.slice(0, 2)) notes.push({ text: line, color: FAIL })
     }
   } else {
     heading = <Text key="h" dimColor>まだ変更はありません。AI が Edit / Write / Bash すると、ここにコードがストリーミングされます。</Text>
@@ -292,11 +293,6 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
       {heading}
       {body}
       {result}
-      {[0, 1].map(n => (
-        <Text key={`n:${n}`} color={notes[n]?.color} wrap="truncate-end">
-          {notes[n] ? `    ${notes[n]!.text}` : ' '}
-        </Text>
-      ))}
       <Text dimColor wrap="truncate-end">
         {historyHidden.above > 0 || historyHidden.below > 0
           ? `${'┄'.repeat(Math.max(0, W - 14))} ↑${historyHidden.above} ↓${historyHidden.below}`.padEnd(W, '┄')
