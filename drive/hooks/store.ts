@@ -72,6 +72,9 @@ export function getTurnId($: $) {
 export function getDraft($: $) {
   return read($, draft)
 }
+export function getSelected($: $) {
+  return read($, selected)
+}
 
 export function setRoot($: $, v: string) {
   return update($, root, () => v)
