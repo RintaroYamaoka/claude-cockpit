@@ -1,7 +1,7 @@
 {
   "name": "cockpit",
   "version": "0.4.0",
-  "description": "AI が書くのを、計器で見る。書かれている最中のコードが流れ、編集した瞬間にそのファイルの imports / dependents と型チェック・テストの結果が見え、履歴をさかのぼり、1 キーで VS Code に、1 キーでリバート。設定なし。",
+  "description": "AI に書かせても、自分で書いている感覚のままでいる。書かれている最中のコードが流れ、編集した瞬間にそのファイルの imports / dependents と型チェック・テストの結果が見え、履歴をさかのぼり、1 キーで VS Code に、1 キーでリバート。設定なし。",
   "license": "MIT",
   "author": {
     "name": "Rintaro Yamaoka",

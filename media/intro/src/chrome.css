@@ -99,3 +99,17 @@
 .vsc-status .it { padding:0 8px; display:flex; align-items:center; gap:4px; }
 .vsc-status .it svg { width:14px; height:14px; stroke:#cccccc; fill:none; stroke-width:1.5; }
 .vsc-status .right { margin-left:auto; display:flex; }
+/* 解剖図:左の列の上に、ペインの 1 行を拡大して部位にラベル */
+.anat { position:absolute; left:138px; width:888px; opacity:0; z-index:4; }
+.anat .al { position:relative; height:30px; font:400 20px/30px "JetBrains Mono","Noto Sans JP",monospace; color:var(--tx); white-space:pre; }
+.anat .al span { position:relative; }
+.anat .tick { position:absolute; width:1px; background:#f5f1e8; opacity:.8; }
+.anat .lb { position:absolute; font:700 15px/22px "Noto Sans JP",sans-serif; color:#1b1b1f; background:#f5f1e8; padding:0 8px; border-radius:5px; white-space:nowrap; }
+.anat .lb.ac { background:var(--now); }
+.anat .note { position:absolute; left:0; font:500 17px/26px "Noto Sans JP",sans-serif; color:#cdd6f4; white-space:pre; }
+.kinds { position:absolute; right:868px; display:flex; flex-direction:column; gap:6px; opacity:0; z-index:4; }
+.kinds .k { font:700 17px/26px "JetBrains Mono","Noto Sans JP",monospace; color:#cdd6f4; background:#313244; padding:0 10px; border-radius:5px; text-align:right; }
+.kinds .k.on { background:var(--now); color:#1e1e2e; }
+.legend { position:absolute; left:138px; width:888px; font:500 18px/30px "JetBrains Mono","Noto Sans JP",monospace; color:#cdd6f4; white-space:pre; opacity:0; z-index:4; }
+
+.hg { display:inline-block; width:12px; height:20px; vertical-align:-3px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; }

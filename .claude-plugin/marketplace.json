@@ -3,12 +3,12 @@
   "owner": {
     "name": "RintaroYamaoka"
   },
-  "description": "cockpit — AI が書くのを計器で見る Claude Code の mod",
+  "description": "cockpit — AI に書かせても、自分で書いている感覚のままでいる。Claude Code の mod",
   "plugins": [
     {
       "name": "cockpit",
       "source": "./cockpit",
-      "description": "右に 1 枚の計器盤。書かれている最中のコード、本当の差分、そのファイルの依存、チェックの結果、履歴。左は素の Claude Code のまま"
+      "description": "AI に書かせても、何が起きているか把握できて、自分で書いている感覚でいられる。右に 1 枚の計器盤:書かれている最中のコード、本当の差分、そのファイルの依存、チェックの結果、履歴。o で VS Code、r でリバート。左は素の Claude Code のまま"
     }
   ]
 }

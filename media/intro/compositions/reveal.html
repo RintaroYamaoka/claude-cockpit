@@ -101,10 +101,24 @@
 .vsc-status .it { padding:0 8px; display:flex; align-items:center; gap:4px; }
 .vsc-status .it svg { width:14px; height:14px; stroke:#cccccc; fill:none; stroke-width:1.5; }
 .vsc-status .right { margin-left:auto; display:flex; }
+/* 解剖図:左の列の上に、ペインの 1 行を拡大して部位にラベル */
+.anat { position:absolute; left:138px; width:888px; opacity:0; z-index:4; }
+.anat .al { position:relative; height:30px; font:400 20px/30px "JetBrains Mono","Noto Sans JP",monospace; color:var(--tx); white-space:pre; }
+.anat .al span { position:relative; }
+.anat .tick { position:absolute; width:1px; background:#f5f1e8; opacity:.8; }
+.anat .lb { position:absolute; font:700 15px/22px "Noto Sans JP",sans-serif; color:#1b1b1f; background:#f5f1e8; padding:0 8px; border-radius:5px; white-space:nowrap; }
+.anat .lb.ac { background:var(--now); }
+.anat .note { position:absolute; left:0; font:500 17px/26px "Noto Sans JP",sans-serif; color:#cdd6f4; white-space:pre; }
+.kinds { position:absolute; right:868px; display:flex; flex-direction:column; gap:6px; opacity:0; z-index:4; }
+.kinds .k { font:700 17px/26px "JetBrains Mono","Noto Sans JP",monospace; color:#cdd6f4; background:#313244; padding:0 10px; border-radius:5px; text-align:right; }
+.kinds .k.on { background:var(--now); color:#1e1e2e; }
+.legend { position:absolute; left:138px; width:888px; font:500 18px/30px "JetBrains Mono","Noto Sans JP",monospace; color:#cdd6f4; white-space:pre; opacity:0; z-index:4; }
+
+.hg { display:inline-block; width:12px; height:20px; vertical-align:-3px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; }
 
 </style>
 <div id="root" data-composition-id="reveal" data-width="1920" data-height="1080">
-<div id="rv-stage" class="stage clip" data-start="0" data-duration="10.56" data-track-index="0">
+<div id="rv-stage" class="stage clip" data-start="0" data-duration="12.16" data-track-index="0">
 <div class="win" id="rv-win"><div class="titlebar"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="ttl">leads-api — claude</span></div><div class="body" id="rv-body"><div class="tx full" id="rv-tx" data-layout-allow-overlap><div class="txs"><div class="txin" id="rv-txin" style="transform:translateY(0px)"><div class="ln" data-layout-allow-occlusion id="rv-p0"><span data-layout-allow-occlusion class="dim">></span> leads API の入力検証を zod にして。</div>
 <div class="ln" data-layout-allow-occlusion id="rv-p1">  型と一体で。</div>
 <div class="ln" data-layout-allow-occlusion> </div>
@@ -122,7 +136,7 @@
 <div class="ln" data-layout-allow-occlusion id="rv-u1">  <span data-layout-allow-occlusion class="dim">⎿  Updated app/api/leads/route.ts with</span></div>
 <div class="ln" data-layout-allow-occlusion id="rv-u2">  <span data-layout-allow-occlusion class="dim">   2 additions and 5 removals</span></div>
 <div class="ln" data-layout-allow-occlusion id="rv-e3"> </div>
-<div class="ln" data-layout-allow-occlusion id="rv-th"><span data-layout-allow-occlusion class="now">✻</span> Thinking… <span data-layout-allow-occlusion class="dim">(12s · ↓ 2.1k tokens)</span></div></div></div><div class="txb"><div class="ln"><span class="dim" id="rv-hr">─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span></div><div class="ln"><span class="dim">></span> <span class="cur" id="rv-cur"></span></div><div class="ln"><span class="dim">  ? for shortcuts</span></div></div></div><div class="vr" id="rv-vr" style="opacity:0"></div><div class="cp" id="rv-cp" data-layout-allow-overlap style="opacity:0"><div class="ln" id="rv-r0"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="dim">まだファイルを触っていない</span></div>
+<div class="ln" data-layout-allow-occlusion id="rv-th"><span data-layout-allow-occlusion class="now" data-layout-allow-occlusion>✻</span> Thinking… <span data-layout-allow-occlusion class="dim">(12s · ↓ 2.1k tokens)</span></div></div></div><div class="txb"><div class="ln"><span class="dim" id="rv-hr">─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span></div><div class="ln"><span class="dim">></span> <span class="cur" id="rv-cur"></span></div><div class="ln"><span class="dim">  ? for shortcuts</span></div></div></div><div class="vr" id="rv-vr" style="opacity:0"></div><div class="cp" id="rv-cp" data-layout-allow-overlap style="opacity:0"><div class="ln" id="rv-r0"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="dim">まだファイルを触っていない</span></div>
 <div class="ln" id="rv-r1"><span class="dim">  imports     —</span></div>
 <div class="ln" id="rv-r2"><span class="dim">  dependents  —</span></div>
 <div class="ln" id="rv-r3"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
@@ -145,10 +159,10 @@
 <div class="ln" id="rv-r20"> </div>
 <div class="ln" id="rv-r21"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
 <div class="ln" id="rv-r22"><span class="dim">o: 開く</span> <span class="dim">r: リバート</span> j: ↓ k: ↑</div></div></div></div>
-<p class="cap" id="rv-c1"><span>もう一度。</span><span>今度は、</span><span class="ac">計器</span><span>を付けて。</span></p>
-<p class="sub" id="rv-s1"><span>Once more, with instruments.</span></p>
-<p class="cap" id="rv-c2"><span class="ac">cockpit</span><span> ― 右に 1 枚。</span><span>左の Claude Code は素のまま。</span></p>
-<p class="sub" id="rv-s2"><span>One pane on the right. Claude Code on the left stays untouched. No settings.</span></p>
+<p class="cap" id="rv-c1"><span>同じ作業を、</span><span class="ac">計器</span><span>を付けて見直す。</span></p>
+<p class="sub" id="rv-s1"><span>The same task again, this time with instruments.</span></p>
+<p class="cap" id="rv-c2"><span class="ac">cockpit</span><span> ― 右に 1 枚。</span><span>まだ何も触っていないので、空。</span></p>
+<p class="sub" id="rv-s2"><span>cockpit: one pane on the right. Claude Code on the left is untouched. Nothing touched yet, so it is empty.</span></p>
 </div>
 </div>
 <script>
@@ -190,19 +204,19 @@ function scrollTo(sel, at, tl, y){ tl.to(sel,{y:y,duration:0.3,ease:"power2.out"
 
 (function(){
 const tl = gsap.timeline({ paused: true });
-blink("#rv-cur",0.2,10.456,tl);
-blink("#rv-cp .tri",2.02,10.456,tl);
-words("#rv-c1",0.3,tl,0.1); words("#rv-s1",0.791,tl,0.05);
-tl.to(["#rv-th","#rv-u2","#rv-u1","#rv-u0","#rv-w1","#rv-w0","#rv-b1","#rv-b0"],{opacity:0,duration:0.12,ease:"power2.in",stagger:0.05},0.546);
-tl.to("#rv-tx",{width:924,duration:0.6,ease:"power2.inOut"},1.529);
-tl.to("#rv-hr",{opacity:0,duration:0.1},1.529);
-tl.set("#rv-hr",{textContent:"──────────────────────────────────────────────────────────────────────────"},1.774);
-tl.to("#rv-hr",{opacity:1,duration:0.2},1.897);
-tl.fromTo("#rv-vr",{opacity:1,scaleY:0},{opacity:1,scaleY:1,duration:0.5,ease:"expo.out"},1.897);
-tl.fromTo("#rv-cp",{opacity:0,x:60},{opacity:1,x:0,duration:0.6,ease:"expo.out"},2.02);
-unwords("#rv-c1",3.126,tl); unwords("#rv-s1",3.126,tl);
-words("#rv-c2",3.426,tl,0.1); words("#rv-s2",4.423,tl,0.05);
-unwords("#rv-c2",10.156,tl); unwords("#rv-s2",10.156,tl);
+blink("#rv-cur",0.2,12.063,tl);
+blink("#rv-cp .tri",2.7,12.063,tl);
+words("#rv-c1",0.3,tl,0.1); words("#rv-s1",0.986,tl,0.05);
+tl.to(["#rv-th","#rv-u2","#rv-u1","#rv-u0","#rv-w1","#rv-w0","#rv-b1","#rv-b0"],{opacity:0,duration:0.12,ease:"power2.in",stagger:0.05},0.643);
+tl.to("#rv-tx",{width:924,duration:0.6,ease:"power2.inOut"},2.015);
+tl.to("#rv-hr",{opacity:0,duration:0.1},2.015);
+tl.set("#rv-hr",{textContent:"──────────────────────────────────────────────────────────────────────────"},2.358);
+tl.to("#rv-hr",{opacity:1,duration:0.2},2.529);
+tl.fromTo("#rv-vr",{opacity:1,scaleY:0},{opacity:1,scaleY:1,duration:0.5,ease:"expo.out"},2.529);
+tl.fromTo("#rv-cp",{opacity:0,x:60},{opacity:1,x:0,duration:0.6,ease:"expo.out"},2.7);
+unwords("#rv-c1",3.901,tl); unwords("#rv-s1",3.901,tl);
+words("#rv-c2",4.301,tl,0.1); words("#rv-s2",5.086,tl,0.05);
+unwords("#rv-c2",11.763,tl); unwords("#rv-s2",11.763,tl);
 window.__timelines["reveal"] = tl;
 })();
 </script>

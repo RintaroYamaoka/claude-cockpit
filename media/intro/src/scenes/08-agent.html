@@ -1,0 +1,68 @@
+<div id="ag-stage" class="stage clip" data-start="0" data-duration="14" data-track-index="0">
+<div class="win" id="ag-win"><div class="titlebar"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="ttl">leads-api — claude</span></div><div class="body" id="ag-body"><div class="tx" id="ag-tx" data-layout-allow-overlap><div class="txs"><div class="txin" id="ag-txin" style="transform:translateY(-90px)"><div class="ln" data-layout-allow-occlusion id="ag-p0"><span data-layout-allow-occlusion class="dim">></span> leads API の入力検証を zod にして。</div>
+<div class="ln" data-layout-allow-occlusion id="ag-p1">  型と一体で。</div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="ag-i0"><span data-layout-allow-occlusion class="now" data-layout-allow-occlusion>●</span> zod で入力検証を型と一体にする。</div>
+<div class="ln" data-layout-allow-occlusion id="ag-i1">  スキーマを lib/validation.ts に置き、</div>
+<div class="ln" data-layout-allow-occlusion id="ag-i2">  route から使う。</div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="ag-b0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Bash</span>(npm install zod)</div>
+<div class="ln" data-layout-allow-occlusion id="ag-b1">  <span data-layout-allow-occlusion class="dim">⎿  added 1 package in 2s</span></div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="ag-w0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Write</span>(lib/validation.ts)</div>
+<div class="ln" data-layout-allow-occlusion id="ag-w1">  <span data-layout-allow-occlusion class="dim">⎿  Wrote 13 lines to lib/validation.ts</span></div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="ag-u0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Update</span>(app/api/leads/route.ts)</div>
+<div class="ln" data-layout-allow-occlusion id="ag-u1">  <span data-layout-allow-occlusion class="dim">⎿  Updated app/api/leads/route.ts with</span></div>
+<div class="ln" data-layout-allow-occlusion id="ag-u2">  <span data-layout-allow-occlusion class="dim">   2 additions and 5 removals</span></div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="ag-v0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Update</span>(app/api/leads/route.ts)</div>
+<div class="ln" data-layout-allow-occlusion id="ag-v1">  <span data-layout-allow-occlusion class="dim">⎿  Updated app/api/leads/route.ts with</span></div>
+<div class="ln" data-layout-allow-occlusion id="ag-v2">  <span data-layout-allow-occlusion class="dim">   5 additions and 1 removal</span></div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="ag-a0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Agent</span>(size の検証テストを足す)</div>
+<div class="ln" data-layout-allow-occlusion id="ag-a1">  <span data-layout-allow-occlusion class="dim">⎿  Done (1 tool use · 12s)</span></div>
+<div class="ln" data-layout-allow-occlusion> </div></div></div><div class="txb"><div class="ln"><span class="dim" id="ag-hr">──────────────────────────────────────────────────────────────────────────</span></div><div class="ln"><span class="dim">></span> <span class="cur" id="ag-cur"></span></div><div class="ln"><span class="dim">  ? for shortcuts</span></div></div></div><div class="vr"></div><div class="cp" id="ag-cp" data-layout-allow-overlap><div class="ln" id="ag-r0"><span class="v" id="ag-r0-h"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="lib b">lib/validation.ts</span><span class="dim">  exports LeadSchema, Lead, isEmail</span></span><span class="v off" id="ag-r0-t"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="oth b">tests/route.test.ts</span><span class="dim">  exports —</span></span></div>
+<div class="ln" id="ag-r1"><span class="v" id="ag-r1-h"><span class="dim">  imports     </span><span class="dim">zod</span><span class="ok pm">+</span><span>  </span></span><span class="v off" id="ag-r1-t"><span class="dim">  imports     </span><span class="app">app/api</span><span>  </span><span class="dim">vitest</span><span>  </span></span></div>
+<div class="ln" id="ag-r2"><span class="v" id="ag-r2-h"><span class="dim">  dependents  </span><span class="b">2</span><span class="dim">  </span><span class="app">app/api  </span><span class="oth">tests  </span></span><span class="v off" id="ag-r2-t"><span class="dim">  dependents  —(エントリポイントか未参照)</span></span></div>
+<div class="ln" id="ag-r3"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="ag-r4"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="dim">zod で入力検証を型と一体にする</span></div>
+<div class="ln" id="ag-r5"><span class="v" id="ag-r5-h"><span class="lib">▎ lib/validation.ts</span><span class="dim"> · LeadSchema</span><span class="dim"> 10:40</span><span class="dim">  ↑0 ↓4</span><span class="now">  履歴</span></span><span class="v off" id="ag-r5-t"><span class="oth">▎ tests/route.test.…</span><span class="dim"> 10:44</span><span class="dim">  ↳ サブエージェント</span></span></div>
+<div class="ln" id="ag-r6"><span class="v" id="ag-r6-h"> <span class="dim">@@ -1,3 +1,13 @@</span></span><span class="v off" id="ag-r6-t"> <span class="dim">@@ -11,4 +11,7 @@</span></span></div>
+<div class="ln" id="ag-r7"><span class="v" id="ag-r7-h"> <span class="plus">+import { z } from 'zod'</span></span><span class="v off" id="ag-r7-t">    it('stores a valid lead', async () =&gt; {</span></div>
+<div class="ln" id="ag-r8"><span class="v" id="ag-r8-h"> <span class="plus">+</span></span><span class="v off" id="ag-r8-t">      const res = await post({ email: 'a@b.co', company: …</span></div>
+<div class="ln" id="ag-r9"><span class="v" id="ag-r9-h"> <span class="plus">+export const LeadSchema = z.object({</span></span><span class="v off" id="ag-r9-t">      expect(res.status).toBe(201)</span></div>
+<div class="ln" id="ag-r10"><span class="v" id="ag-r10-h"> <span class="plus">+  email: z.string().email(),</span></span><span class="v off" id="ag-r10-t">    })</span></div>
+<div class="ln" id="ag-r11"><span class="v" id="ag-r11-h"> <span class="plus">+  company: z.string().min(1),</span></span><span class="v off" id="ag-r11-t"> <span class="plus">+  it('rejects a non-numeric size', async () =&gt; {</span></span></div>
+<div class="ln" id="ag-r12"><span class="v" id="ag-r12-h"> <span class="plus">+  size: z.number().int().positive(),</span></span><span class="v off" id="ag-r12-t"> <span class="plus">+    expect((await post({ email: 'a@b.co', size: 'big' }…</span></span></div>
+<div class="ln" id="ag-r13"><span class="v" id="ag-r13-h"> <span class="plus">+})</span></span><span class="v off" id="ag-r13-t"> <span class="plus">+  })</span></span></div>
+<div class="ln" id="ag-r14"><span class="v" id="ag-r14-h"> <span class="plus">+</span></span><span class="v off" id="ag-r14-t">  })</span></div>
+<div class="ln" id="ag-r15"><span class="v" id="ag-r15-h"> <span class="plus">+export type Lead = z.infer&lt;typeof LeadSchema&gt;</span></span><span class="v off" id="ag-r15-t"></span></div>
+<div class="ln" id="ag-r16"><span class="v" id="ag-r16-h"><span class="dim">  └ </span><span class="ok">+11</span> <span class="bad">-1</span><span class="dim">  </span><span class="ok">✓ 型チェック</span><span class="dim"> 2.4s</span><span>  </span><span class="ok">✓ テスト</span><span class="dim"> 1.0s</span><span>  </span></span><span class="v off" id="ag-r16-t"><span class="dim">  └ </span><span class="ok">+3</span> <span class="bad">-0</span><span class="dim">  </span><span class="ok">✓ 型チェック</span><span class="dim"> 2.2s</span><span>  </span><span class="ok">✓ テスト</span><span class="dim"> 1.0s</span><span>  </span></span></div>
+<div class="ln" id="ag-r17"><span class="v" id="ag-r17-h"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ↑1 ↓1┄┄┄┄┄┄┄┄</span></span><span class="v off" id="ag-r17-t"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ↑0 ↓2┄┄┄┄┄┄┄┄</span></span></div>
+<div class="ln" id="ag-r18"><span class="v" id="ag-r18-h"><span class="ok">✓ </span><span class="dim">10:43 Edit  </span><span class="app">app/api/leads/route.ts</span><span class="dim"> · POST</span><span class="dim"> +5 -1</span></span><span class="v off" id="ag-r18-t"><span class="now">▸ </span><span class="">10:44 Edit  ↳ </span><span class="oth b">tests/route.test.ts</span><span class="dim"> +3 -0</span></span></div>
+<div class="ln" id="ag-r19"><span class="v" id="ag-r19-h"><span class="bad">✗ </span><span class="dim">10:42 Edit  </span><span class="app">app/api/leads/route.ts</span><span class="dim"> · POST</span><span class="dim"> +2 -5</span></span><span class="v off" id="ag-r19-t"><span class="ok">✓ </span><span class="dim">10:43 Edit  </span><span class="app">app/api/leads/route.ts</span><span class="dim"> · POST</span><span class="dim"> +5 -1</span></span></div>
+<div class="ln" id="ag-r20"><span class="v" id="ag-r20-h"><span class="now">▸ </span><span class="">10:40 Write </span><span class="lib b">lib/validation.ts</span><span class=""> · LeadSchema</span><span class="dim"> +11 -1</span></span><span class="v off" id="ag-r20-t"><span class="bad">✗ </span><span class="dim">10:42 Edit  </span><span class="app">app/api/leads/route.ts</span><span class="dim"> · POST</span><span class="dim"> +2 -5</span></span></div>
+<div class="ln" id="ag-r21"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="ag-r22"><span class="v" id="ag-r22-h"><span class="">o: 開く</span> <span class="">r: リバート</span> j: ↓ k: ↑ l: 最新へ</span><span class="v off" id="ag-r22-t"><span class="">o: 開く</span> <span class="">r: リバート</span> j: ↓ k: ↑</span></div></div></div></div>
+<div class="keys" id="ag-k0"><kbd id="ag-kl">l</kbd></div>
+<div class="lab ac" id="ag-l1" style="right:884px;top:263px">↳ サブエージェントが書いた変更 ▸</div>
+<div class="lab" id="ag-l2" style="right:884px;top:653px">履歴にも ↳ ▸</div>
+<p class="cap" id="ag-c1"><span class="ac">l</span><span> で最新へ。来ていたのは、</span><span>サブエージェントの変更。</span></p>
+<p class="sub" id="ag-s1"><span>l jumps back to the latest. What arrived was a change written by a subagent.</span></p>
+<p class="cap" id="ag-c2"><span class="ac">↳</span><span> が付く。</span><span>並列なら、今書いているものが映る。</span></p>
+<p class="sub" id="ag-s2"><span>Subagent changes stream the same way, marked ↳ in the heading and the history. The intent line stays the main conversation only.</span></p>
+</div>
+<!--SCRIPT-->
+blink("#ag-cur",0.2,13.9,tl);
+blink("#ag-cp .tri",0.2,13.9,tl);
+words("#ag-c1",0.4,tl,0.1); words("#ag-s1",0.8,tl,0.05);
+keys("#ag-k0",0.6,tl); press("#ag-kl",0.9,tl);
+swapTo("#ag-r5-t",1.15,tl); swapTo("#ag-r6-t",1.15,tl); swapTo("#ag-r7-t",1.15,tl); swapTo("#ag-r8-t",1.15,tl); swapTo("#ag-r9-t",1.15,tl); swapTo("#ag-r10-t",1.15,tl); swapTo("#ag-r11-t",1.15,tl); swapTo("#ag-r12-t",1.15,tl); swapTo("#ag-r13-t",1.15,tl); swapTo("#ag-r14-t",1.15,tl); swapTo("#ag-r15-t",1.15,tl); swapTo("#ag-r0-t",1.15,tl); swapTo("#ag-r1-t",1.15,tl); swapTo("#ag-r2-t",1.15,tl); pick("#ag-r16-t",1.15,tl); pick("#ag-r17-t",1.15,tl); pick("#ag-r18-t",1.15,tl); pick("#ag-r19-t",1.15,tl); pick("#ag-r20-t",1.15,tl); pick("#ag-r22-t",1.15,tl);
+unkeys("#ag-k0",2.4,tl);
+unwords("#ag-c1",5.4,tl); unwords("#ag-s1",5.4,tl);
+words("#ag-c2",5.8,tl,0.1); words("#ag-s2",6.2,tl,0.05);
+focusRows("#ag-cp",["#ag-r5","#ag-r18","#ag-r4"],5.8,tl);
+label("#ag-l1",6.0,tl); label("#ag-l2",6.6,tl);
+unlabel("#ag-l1",12.6,tl); unlabel("#ag-l2",12.6,tl); unfocusRows("#ag-cp",12.6,tl);
+unwords("#ag-c2",13.0,tl); unwords("#ag-s2",13.0,tl);

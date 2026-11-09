@@ -1,4 +1,4 @@
-# cockpit 紹介動画(HyperFrames)
+# cockpit 解説動画(HyperFrames)
 
 `../../README.md` に載せる動画のソース。HTML を 1 フレームずつ描いて動画にする(HyperFrames)。
 
