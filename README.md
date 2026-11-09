@@ -8,7 +8,6 @@ cockpit は、その把握を transcript から目を離さずに取り戻すた
 
 https://github.com/user-attachments/assets/b6df1973-bef3-47d1-9bb4-a464dfe8626d
 
-▶ [解説動画(5 分)](media/cockpit-intro.mp4) ― 1 つの作業を追いながら、画面の要素を出てきた順に全部説明する。
 
 | mod | 何をするか |
 |---|---|
