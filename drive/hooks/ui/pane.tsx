@@ -224,7 +224,7 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
       result = (
         <Text key="r" dimColor wrap="truncate-end">
           {'  └ '}
-          <Text color={OK}>+{plus}</Text> <Text color={FAIL}>−{minus}</Text>
+          <Text color={OK}>+{plus}</Text> <Text color={FAIL}>-{minus}</Text>
           {check ? (
             <Text>
               {'  '}
@@ -256,32 +256,39 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
     const isShown = shown?.id === c.id
     const toolLabel = c.tool.padEnd(5) // 時刻の次にツール名(Edit / Write / Bash)
     const onPress = () => actions.select(isShown ? null : c.id)
+    // ボタンは truncate が効かないので、高さ 1 行・はみ出しは切る箱で包んで折り返しを防ぐ
     if (c.tool === 'Bash') {
       const ok = c.exitCode === 0
       return (
-        <Button key={`h:${c.id}`} plain onPress={onPress}>
-          <Text color={isShown ? NOW : ok ? OK : FAIL}>{isShown ? '▸' : ok ? '✓' : '✗'} </Text>
-          <Text dimColor={!isShown}>{clock(c.at)} {toolLabel} {c.agentId ? '↳ ' : ''}$ </Text>
-          <Text weight={isShown ? 'bold' : 'regular'}>{fit(c.path, Math.max(12, W - 18))}</Text>
-        </Button>
+        <Box key={`h:${c.id}`} height={1} width={W} overflow="hidden">
+          <Button key={`hb:${c.id}`} plain onPress={onPress}>
+            <Text color={isShown ? NOW : ok ? OK : FAIL}>{isShown ? '▸' : ok ? '✓' : '✗'} </Text>
+            <Text dimColor={!isShown}>{clock(c.at)} {toolLabel} {c.agentId ? '↳ ' : ''}$ </Text>
+            <Text weight={isShown ? 'bold' : 'regular'}>{fit(c.path, Math.max(12, W - 20))}</Text>
+          </Button>
+        </Box>
       )
     }
     const ck = f.checks[c.id]
     const mark = ck ? (ck.items.some(i => i.status === 'fail') ? '✗' : ck.items.some(i => i.status === 'running') ? '⏳' : '✓') : ' '
     const n = countLines(c.diff)
+    const counts = ` +${n.plus} -${n.minus}`
+    const tail = (c.symbol ? c.symbol.length + 3 : 0) + counts.length + (c.reverted ? 2 : 0) + (c.agentId ? 2 : 0)
     return (
-      <Button key={`h:${c.id}`} plain onPress={onPress}>
-        <Text color={isShown ? NOW : mark === '✗' ? FAIL : mark === '✓' ? OK : undefined} dimColor={!isShown && mark !== '✗' && mark !== '✓'}>
-          {isShown ? '▸' : mark}{' '}
-        </Text>
-        <Text dimColor={!isShown}>{clock(c.at)} {toolLabel} {c.agentId ? '↳ ' : ''}</Text>
-        <Text color={layerColor(insideWorkspace(c.path, f.workspaces))} weight={isShown ? 'bold' : 'regular'} dimColor={Boolean(c.reverted)}>
-          {fit(c.path, Math.max(12, W - 28 - (c.symbol ? c.symbol.length + 3 : 0)))}
-        </Text>
-        {c.symbol ? <Text dimColor={!isShown}> · {c.symbol}</Text> : null}
-        <Text dimColor> +{n.plus} −{n.minus}</Text>
-        {c.reverted ? <Text color={WARN}> ↶</Text> : null}
-      </Button>
+      <Box key={`h:${c.id}`} height={1} width={W} overflow="hidden">
+        <Button key={`hb:${c.id}`} plain onPress={onPress}>
+          <Text color={isShown ? NOW : mark === '✗' ? FAIL : mark === '✓' ? OK : undefined} dimColor={!isShown && mark !== '✗' && mark !== '✓'}>
+            {isShown ? '▸' : mark}{' '}
+          </Text>
+          <Text dimColor={!isShown}>{clock(c.at)} {toolLabel} {c.agentId ? '↳ ' : ''}</Text>
+          <Text color={layerColor(insideWorkspace(c.path, f.workspaces))} weight={isShown ? 'bold' : 'regular'} dimColor={Boolean(c.reverted)}>
+            {fit(c.path, Math.max(12, W - 16 - tail))}
+          </Text>
+          {c.symbol ? <Text dimColor={!isShown}> · {c.symbol}</Text> : null}
+          <Text dimColor>{counts}</Text>
+          {c.reverted ? <Text color={WARN}> ↶</Text> : null}
+        </Button>
+      </Box>
     )
   })
 
@@ -300,7 +307,7 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
       </Text>
       {history}
       <Text dimColor>{'┄'.repeat(W)}</Text>
-      <Box flexDirection="row" gap={1}>
+      <Box flexDirection="row" gap={1} height={1} width={W} overflow="hidden">
         {shown ? <Button key="open" plain hotkey="o" label="開く" onPress={() => actions.open(shown)} /> : <Text dimColor>o: 開く</Text>}
         {hasRevertable ? <Button key="revert" plain hotkey="r" label="リバート" onPress={() => actions.revert()} /> : <Text dimColor>r: リバート</Text>}
         <Button key="down" plain hotkey="j" label="↓" onPress={() => actions.scroll(3)} />
