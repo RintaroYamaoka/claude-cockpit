@@ -1,11 +1,7 @@
 # cockpit
 
-AI に書かせても、自分で書いている感覚のままでいる。Claude Code の mod。
-
-AI がコードを書く速さに、人の把握が追いつかなくなった。今どこを触っていて、何が変わり、何に効き、壊れていないか。
-それが分からないまま進むと、自分のコードではなくなっていく。
-cockpit は、その把握を transcript から目を離さずに取り戻すための計器盤を右に 1 枚足す。見るだけでなく、その場で開いて、戻せる。
-左の Claude Code は素のまま。設定は無い。計器は 4 つ、操作は 2 つ。
+AI に書かせても、自分で書いている感覚のままでいる。Claude Code の mod(概要とインストールは[リポジトリの README](../README.md))。
+右に 1 枚の計器盤。設定は無い。計器は 4 つ、操作は 2 つ。
 
 1. **書かれている最中のコードが流れる**。Edit の `new_string`、Write の `content`、Bash の `command` を、モデルが書いている途中からそのまま表示する。確定したら本当の差分(変わった行と前後 2 行だけ)。
 2. **編集した瞬間に、そのファイルの依存が見える**。imports / dependents(誰に使われているか)/ このセッションで増えた依存。
@@ -121,15 +117,4 @@ Claude Code のプロンプトで:
 
 ```
 /plugin install cockpit --marketplace RintaroYamaoka/claude-cockpit
-```
-
-## 開発
-
-リポジトリのルートで:
-
-```
-claude --plugin-dir ./cockpit      # そのセッションだけ読み込む(保存で再読み込み)
-claude plugin validate ./cockpit   # manifest と hooks module の検証
-claude plugin test ./cockpit       # 純粋なロジックの単体テスト
-npm run typecheck                  # tsc --noEmit(npx で typescript を取る。npm の依存は持たない)
 ```
