@@ -1,0 +1,6 @@
+# the engine writes these beside a loaded mod
+**/.claude-plugin/types/
+.mcpb-cache/
+node_modules/
+*.log
+.DS_Store
