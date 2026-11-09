@@ -1,4 +1,4 @@
-// drive の状態契約。$.state に置く値はすべてここで宣言する。
+// cockpit の状態契約。$.state に置く値はすべてここで宣言する。
 
 /** root の外で触られ、依存グラフに加えた場所(別リポジトリ・worktree)。 */
 export type Workspace = { dir: string; label: string }
@@ -6,28 +6,43 @@ export type Workspace = { dir: string; label: string }
 /** 構造に影響する変更の種類。 */
 export type StructureKind = 'schema' | 'deps' | 'route' | 'env' | 'config' | 'new'
 
-/** 適用された 1 回の変更。リバートに必要な前後のテキストを持つ。Bash はコマンドの記録。 */
-export type Change = {
-  id: string // tool_use_id
-  path: string // ツリー内のパス(Bash はコマンドの要約)
-  file: string // 絶対パス(Bash は cwd)
-  symbol: string | null // 変更位置に最も近い宣言名
-  diff: string // unified diff のハンク
+export type ChangeBase = {
+  id: string // tool_use_id(ヒアドキュメント由来は `<tool_use_id>-<path>`)
   at: number
-  kind: StructureKind | null
-  before: string | null // Write の新規作成は null
-  after: string | null
-  isNew: boolean
-  tool: 'Edit' | 'Write' | 'Bash'
   agentId?: string // サブエージェントの変更なら、そのエージェントの id
-  reverted?: true
-  exitCode?: number
-  command?: string // Bash のコマンド全文
-  output?: string // Bash の出力全文(stdout + stderr)
 }
 
+/** 適用された 1 回の Edit / Write。リバートに必要な前後のテキストを持つ。 */
+export type FileChange = ChangeBase & {
+  tool: 'Edit' | 'Write'
+  path: string // ツリー内のパス
+  file: string // 絶対パス
+  symbol: string | null // 変更位置に最も近い宣言名
+  diff: string // unified diff のハンク 1 つ(文脈行つき)
+  plus: number // 追加行数(diff を数え直さない)
+  minus: number // 削除行数
+  kind: StructureKind | null
+  before: string | null // Edit は old_string、Write はファイル全体。大きすぎて持てなければ null
+  after: string | null // Edit は new_string、Write はファイル全体
+  isNew: boolean // Write で新しく作った(リバートは削除)
+  replaceAll?: true // Edit の replace_all(リバートも全置換)
+  reverted?: true
+}
+
+/** 実行した 1 回の Bash。 */
+export type CommandChange = ChangeBase & {
+  tool: 'Bash'
+  summary: string // 先頭のコマンドを短く(履歴と見出し)
+  command: string // コマンド全文
+  cwd: string
+  exitCode: number
+  output: string // stdout + stderr(末尾 2000 行まで)
+}
+
+export type Change = FileChange | CommandChange
+
 /** ストリーミング中のツール入力から組んだ、まだ適用されていないコード(Bash はコマンド)。 */
-export type Draft = { id: string; tool: string; path: string | null; text: string; startedAt: number; agentId?: string }
+export type Draft = { id: string; tool: 'Edit' | 'Write' | 'Bash'; path: string | null; text: string; startedAt: number; agentId?: string }
 
 export type CheckStatus = 'running' | 'ok' | 'fail' | 'skip'
 export type CheckItem = { label: string; status: CheckStatus; detail: string[]; ms: number }
@@ -38,7 +53,7 @@ export type DepNode = { rel: string; imports: string[]; packages: string[]; expo
 
 declare module 'claude-code' {
   interface PluginState {
-    drive: {
+    cockpit: {
       root: string
       workspaces: Shaped<Workspace[]>
       files: string[] // 依存解析の対象(ツリー内の相対パス)

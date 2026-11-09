@@ -5,22 +5,22 @@ import type { EngineInterface } from 'claude-code'
 
 import type { Change, Check, DepNode, Draft, Workspace } from '../types'
 
-const root = atom({ plugin: 'drive', key: 'root' } as const, '')
-const workspaces = atom({ plugin: 'drive', key: 'workspaces' } as const, [] as Workspace[], { shape: 'workspaces-1' })
-const files = atom({ plugin: 'drive', key: 'files' } as const, [] as string[])
-const focus = atom({ plugin: 'drive', key: 'focus' } as const, null as string | null)
-const changes = atom({ plugin: 'drive', key: 'changes' } as const, [] as Change[], { shape: 'changes-4' })
-const intent = atom({ plugin: 'drive', key: 'intent' } as const, '')
-const draft = atom({ plugin: 'drive', key: 'draft' } as const, null as Draft | null, { shape: 'draft-2' })
-const checks = atom({ plugin: 'drive', key: 'checks' } as const, {} as Record<string, Check>, { shape: 'checks-1' })
-const turnId = atom({ plugin: 'drive', key: 'turnId' } as const, null as string | null)
-const deps = atom({ plugin: 'drive', key: 'deps' } as const, {} as Record<string, DepNode>, { shape: 'deps-1' })
-const addedEdges = atom({ plugin: 'drive', key: 'addedEdges' } as const, {} as Record<string, number>, { shape: 'edges-1' })
-const depsDone = atom({ plugin: 'drive', key: 'depsDone' } as const, false)
-const tick = atom({ plugin: 'drive', key: 'tick' } as const, 0)
-const selected = atom({ plugin: 'drive', key: 'selected' } as const, null as string | null)
-const codeScroll = atom({ plugin: 'drive', key: 'codeScroll' } as const, 0)
-const historyScroll = atom({ plugin: 'drive', key: 'historyScroll' } as const, 0)
+const root = atom({ plugin: 'cockpit', key: 'root' } as const, '')
+const workspaces = atom({ plugin: 'cockpit', key: 'workspaces' } as const, [] as Workspace[], { shape: 'workspaces-1' })
+const files = atom({ plugin: 'cockpit', key: 'files' } as const, [] as string[])
+const focus = atom({ plugin: 'cockpit', key: 'focus' } as const, null as string | null)
+const changes = atom({ plugin: 'cockpit', key: 'changes' } as const, [] as Change[], { shape: 'changes-5' })
+const intent = atom({ plugin: 'cockpit', key: 'intent' } as const, '')
+const draft = atom({ plugin: 'cockpit', key: 'draft' } as const, null as Draft | null, { shape: 'draft-2' })
+const checks = atom({ plugin: 'cockpit', key: 'checks' } as const, {} as Record<string, Check>, { shape: 'checks-1' })
+const turnId = atom({ plugin: 'cockpit', key: 'turnId' } as const, null as string | null)
+const deps = atom({ plugin: 'cockpit', key: 'deps' } as const, {} as Record<string, DepNode>, { shape: 'deps-1' })
+const addedEdges = atom({ plugin: 'cockpit', key: 'addedEdges' } as const, {} as Record<string, number>, { shape: 'edges-1' })
+const depsDone = atom({ plugin: 'cockpit', key: 'depsDone' } as const, false)
+const tick = atom({ plugin: 'cockpit', key: 'tick' } as const, 0)
+const selected = atom({ plugin: 'cockpit', key: 'selected' } as const, null as string | null)
+const codeScroll = atom({ plugin: 'cockpit', key: 'codeScroll' } as const, 0)
+const historyScroll = atom({ plugin: 'cockpit', key: 'historyScroll' } as const, 0)
 
 type $ = EngineInterface
 
@@ -125,4 +125,4 @@ export function setHistoryScroll($: $, fn: (v: number) => number) {
   return update($, historyScroll, fn)
 }
 
-export const PANE = 'drive'
+export const PANE = 'cockpit'

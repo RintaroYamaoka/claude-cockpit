@@ -1,16 +1,19 @@
-# drive
+# cockpit
 
-AI 駆動開発(AI-driven)を、自分で運転する(drive)ための Claude Code の mod。
+AI が書くのを、計器で見る。Claude Code の mod。
 
-左の transcript は Claude Code 素のまま。右に 1 枚のペインを足す。設定は無い。やることは 4 つだけ。
+AI にコードを書かせている間、人の仕事は「書く」から「見る」に変わった。何が変わり、何に効き、壊れていないか。
+それを transcript から目を離さずに知るための計器盤を右に 1 枚足す。左の Claude Code は素のまま。設定は無い。計器は 4 つ、操作は 2 つ。
 
-1. **書かれている最中のコードが流れる**。Edit の `new_string`、Write の `content`、Bash の `command` を、モデルが書いている途中からそのまま表示する。
-2. **1 キーで戻す**。`r` リバート(3 秒以内に 2 回で確定)。プロンプトで `>revert` でも同じ。止めるのは Claude Code の Esc(mod は重複する機能を持たない)。
-3. **編集した瞬間に、そのファイルの依存が見える**。imports / dependents(誰に使われているか)/ このセッションで増えた依存。
-4. **編集した直後に、型チェックと関連テストの結果が返る**。
+1. **書かれている最中のコードが流れる**。Edit の `new_string`、Write の `content`、Bash の `command` を、モデルが書いている途中からそのまま表示する。確定したら本当の差分(変わった行と前後 2 行だけ)。
+2. **編集した瞬間に、そのファイルの依存が見える**。imports / dependents(誰に使われているか)/ このセッションで増えた依存。
+3. **編集した直後に、型チェックと関連テストの結果が返る**。
+4. **履歴をさかのぼれる**。変更を選ぶと、その時の本文・結果・依存に戻る。
+
+操作は `o`(その変更を VS Code の該当行で開く)と `r`(直前の変更を戻す。3 秒以内に 2 回で確定、プロンプトから `>revert` でも同じ)だけ。止めるのは Claude Code の Esc(mod は重複する機能を持たない)。
 
 ```
-┌ Claude Code(素のまま)──────────┬ drive ───────────────────────────────────────────┐
+┌ Claude Code(素のまま)──────────┬ cockpit ──────────────────────────────────────────┐
 │ ⏺ Update(app/api/leads/route.ts)│ ▶ app/api/leads/route.ts  exports POST, runtime      │
 │   ⎿ Updated with 3 additions … │   imports     lib+  zod  next                        │
 │                                 │   dependents  2  app/(dashboard)  app/api            │
@@ -59,10 +62,10 @@ o: 開く r: リバート j: ↓ k: ↑                      ← ⑨ 操作
 3. **dependents**:このファイルを import しているファイルの数と場所。変更の影響範囲。`—(エントリポイントか未参照)` なら誰も使っていない。
 4. **意図**:モデルが今書いている文章の 1 行目。「何のために」。宣言を強制してはいない。
 5. **見出し**:直近の変更のファイル、変更位置に最も近い宣言名、構造に効く種類(`▌スキーマ` `▌依存関係` `▌ルーティング` `▌環境変数` `▌設定` `▌新規`)、時刻。Bash なら `$ コマンド ✓` と終了コード。
-6. **本文**:確定後は unified diff。AI が書いている最中はここにコードが行番号付きで流れ、見出しが `ストリーミング中 N 行 ▌` に変わる。高さは固定(履歴以外の残り全部)。Bash はコマンド全文に続けて出力全文(ホイールか `j` / `k` で全部読める)。
+6. **本文**:確定後は unified diff。Edit も Write も前後のテキストから行差分を取るので、変わった行と前後 2 行の文脈だけが出る(30 行置換して 1 行しか違わなければ、その 1 行)。AI が書いている最中はここにコードが行番号付きで流れ、見出しが `ストリーミング中 N 行 ▌` に変わる。高さは固定(履歴以外の残り全部)。Bash はコマンド全文に続けて出力全文(ホイールか `j` / `k` で全部読める)。
 7. **結果**:`+3 -1` と、編集直後に裏で回したチェック(型チェック・関連テスト・lint)の結果と所要時間。実行できるものが無いプロジェクトでは `– チェック`。
 8. **履歴**:変更とコマンドを 1 行ずつ、新しいものが上。`✓✗` はチェックの結果(Bash は終了コード)、時刻の次にツール名(Edit / Write / Bash)、`↶` はリバート済み。今本文に映している変更の行は `▸` で強調。行を押すとその変更の画面(本文・結果・依存)に飛び、もう一度押すと最新へ。履歴を見ている間は、新しい変更が来ても画面を変えない(最新を見ている時だけ追従する)。履歴の上でホイールを回すと履歴がスクロールする(罫線の右に `↑n ↓m`)。
-9. **操作**:`o` 今映している変更を VS Code で開く。プロジェクトのフォルダをワークスペースとして開き、その中でファイルを変更位置の行に(Bash はヒアドキュメントで書いたファイル。無ければフォルダだけ)。外部ルートならそのプロジェクトのフォルダ。WSL では `Code.exe --remote wsl+<distro>` で WSL 側として開く、`r` リバート(3 秒以内に 2 回)、`j` / `k` コードのスクロール。止めるのは Claude Code 自身の Esc。キーはペインがキーボードを持っている間だけ効く(`/drive` と打つ、ctrl+x のあと Tab、またはペインをクリック。`Esc` でプロンプトへ戻る)。プロンプトに `r` と打てば Claude への文字になる。フォーカスを動かしたくなければ、プロンプトから `>revert` と打つのが速い。
+9. **操作**:`o` 今映している変更を VS Code で開く。プロジェクトのフォルダをワークスペースとして開き、その中でファイルを変更位置の行に(Bash はヒアドキュメントで書いたファイル。無ければフォルダだけ)。外部ルートならそのプロジェクトのフォルダ。WSL では `Code.exe --remote wsl+<distro>` で WSL 側として開く、`r` リバート(3 秒以内に 2 回)、`j` / `k` コードのスクロール。止めるのは Claude Code 自身の Esc。キーはペインがキーボードを持っている間だけ効く(`/cockpit` と打つ、ctrl+x のあと Tab、またはペインをクリック。`Esc` でプロンプトへ戻る)。プロンプトに `r` と打てば Claude への文字になる。フォーカスを動かしたくなければ、プロンプトから `>revert` と打つのが速い。
 
 **色の規則は 4 つ**:「今」= アクセント 1 色(①④の `▶`、ストリーミング中の見出し。テーマの `claude`)。状態 = 緑 / 赤 / 黄(✓✗、+/−、終了コード、リバート済み。テーマの `success` `error` `warning`)。層 = 4 色相でモジュール名だけ(入口 app / src / pages = 青、ロジック lib / core / hooks = 青緑、データ prisma / db / migrations = 紫、他 = 灰)。それ以外は本文色と薄色の 2 段。背景は透過で、端末(transcript)と同じ。
 
@@ -77,26 +80,26 @@ o: 開く r: リバート j: ↓ k: ↑                      ← ⑨ 操作
 - ストリーミングは `turn.step` のツール入力のチャンク(途中までの JSON)を復号して出す。
 - 依存グラフはセッション開始時に repo のソース(ts / tsx / js / py)の import / export を正規表現で解析(相対パス・`@/` エイリアス・`index.ts`・`.js` 拡張子を解決)。Edit / Write のたびにそのファイルだけ再解析し、増えた辺を記録。
 - チェックはプロジェクトにあるものだけ:`node_modules/.bin/tsc --noEmit`、関連テスト(`x.test.ts` などがあれば vitest / jest)、`ruff check`、`cargo check`、`go vet`。連続する編集は 600 ms で束ねて 1 回。結果は見せるだけで、モデルには返さない。
-- Bash のヒアドキュメント(`cat > path <<EOF`)はそのファイルへの Write として扱う。
-- root の外(別リポジトリ・worktree)のファイルを触ると、そのプロジェクトの root を見つけて依存グラフに加える(`⤵ label/…`)。`/drive forget` で外す。
-- リバートは直前の Edit / Write を逆向きに適用し(新規作成なら削除。Bash は対象外)、モデルにも「人が意図的にリバートした」と伝える。
+- Bash のヒアドキュメント(`cat > path <<EOF`、`cat <<EOF > path` のどちらの順でも)はそのファイルへの Write として扱う。
+- root の外(別リポジトリ・worktree)のファイルを Edit / Write / Bash で書き換えると、そのプロジェクトの root を見つけて依存グラフに加える(`label/…`)。Read しただけでは足さない。`/cockpit forget` で外す。
+- リバートは直前の Edit / Write を逆向きにファイルへ直接書く(新規作成なら削除。Bash は対象外。`replace_all` の Edit は全置換で戻す)。人の操作なので Claude Code のツールは通さず、許可ダイアログも出ず、履歴にも積まれない。元の変更に `↶` が付き、その変更の依存とチェックを回し直し、モデルにも「人が意図的にリバートした」と伝える。後の編集で上書きされていたり、同じ文字列が複数あって一意に戻せない時は、理由を出して何もしない。
 
 ## コマンド
 
 | | |
 |---|---|
 | `o` | 今映している変更を VS Code で開く(プロジェクトをワークスペースに、ファイルは変更位置の行) |
-| `>revert` / `r` `r` | 直前の変更を戻す |
+| `>revert` / `r` `r` | 直前の Edit / Write を戻す(まだ戻していない中で最新のもの) |
 | `j` / `k` | 本文のコードを 3 行ずつスクロール。ホイールは、本文の上なら本文、履歴の上なら履歴を動かす |
-| `/drive` | ペインを開く(起動時にも開く。幅は 96 列を要求、上限は端末の 45%) |
-| `/drive rescan` | ソース一覧と依存グラフを作り直す |
-| `/drive forget` | 外部ルートを外す |
+| `/cockpit` | ペインを開く(起動時にも開く。幅は 96 列を要求、上限は端末の 45%) |
+| `/cockpit rescan` | ソース一覧と依存グラフを作り直す |
+| `/cockpit forget` | 外部ルートを外す |
 
 ## 制約
 
 - ペインの位置と幅は Claude Code が決める(transcript の右、幅 45% まで)。
 - hooks module は TypeScript / JavaScript のみ(`WebAssembly` も無い)。
-- 1 キーの操作はペインがキーボードを持っている時だけ(`/drive`、ctrl+x tab、またはクリック)。プロンプトからは `>revert`。
+- 1 キーの操作はペインがキーボードを持っている時だけ(`/cockpit`、ctrl+x tab、またはクリック)。プロンプトからは `>revert`。
 
 ## 設計
 
@@ -105,14 +108,26 @@ hooks/
   register.tsx   配線(どのイベントでどの関数を呼ぶか)
   store.ts       atom と Frame、状態を読む・変える関数の唯一の置き場
   domain/        純粋なロジック:paths edits draft deps checks tree shell
-  app/           状態を変える処理:session edits checks deps draft workspaces
+  app/           状態を変える処理:session edits editor checks deps draft workspaces
   ui/            描画:pane(1 枚)palette format
 types/index.d.ts 状態の契約
 ```
 
-## 開発
+## インストール
+
+Claude Code のプロンプトで:
 
 ```
-claude --plugin-dir ./drive      # そのセッションだけ読み込む(保存で再読み込み)
-claude plugin validate ./drive   # manifest と hooks module の検証
+/plugin install cockpit --marketplace RintaroYamaoka/claude-cockpit
+```
+
+## 開発
+
+リポジトリのルートで:
+
+```
+claude --plugin-dir ./cockpit      # そのセッションだけ読み込む(保存で再読み込み)
+claude plugin validate ./cockpit   # manifest と hooks module の検証
+claude plugin test ./cockpit       # 純粋なロジックの単体テスト
+npm run typecheck                  # tsc --noEmit(npx で typescript を取る。npm の依存は持たない)
 ```

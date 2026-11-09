@@ -1,14 +1,14 @@
 {
-  "name": "claude-coding-driver",
+  "name": "claude-cockpit",
   "owner": {
     "name": "RintaroYamaoka"
   },
-  "description": "drive — AI 駆動開発を自分で運転する Claude Code の mod",
+  "description": "cockpit — AI が書くのを計器で見る Claude Code の mod",
   "plugins": [
     {
-      "name": "drive",
-      "source": "./drive",
-      "description": "AI 駆動開発を自分で運転する超高速コーディングに。左は書く体験、右はアーキテクチャの把握"
+      "name": "cockpit",
+      "source": "./cockpit",
+      "description": "右に 1 枚の計器盤。書かれている最中のコード、本当の差分、そのファイルの依存、チェックの結果、履歴。左は素の Claude Code のまま"
     }
   ]
 }

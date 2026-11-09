@@ -2,10 +2,11 @@
 import type { EngineInterface } from 'claude-code'
 
 import type { Check, CheckItem } from '../../types'
-import { planChecks, runCheck } from '../domain/checks'
+import { type CheckPlan, planChecks, runCheck } from '../domain/checks'
 import { projectDirOf } from '../domain/paths'
 import { getRoot, getWorkspaces, setChecks } from '../store'
 
+const SETTLE_MS = 600 // 連続する編集はこの間隔で束ねる
 const pending = new Map<string, string>() // tool_use_id → file
 let timer: { cancel: () => void } | null = null
 let isRunning = false
@@ -15,7 +16,7 @@ export function scheduleChecks($: EngineInterface, id: string, file: string): vo
   const placeholder: Check = { at: Date.now(), items: [{ label: 'チェック', status: 'running', detail: [], ms: 0 }] }
   void setChecks($, c => ({ ...c, [id]: placeholder }))
   timer?.cancel()
-  timer = $.clock.after(600, () => void runPending($))
+  timer = $.clock.after(SETTLE_MS, () => void runPending($))
 }
 
 async function runPending($: EngineInterface): Promise<void> {
@@ -31,18 +32,22 @@ async function runPending($: EngineInterface): Promise<void> {
       byProject.set(dir, [...(byProject.get(dir) ?? []), id])
     }
     for (const [dir, ids] of byProject) {
-      const plans = new Map<string, Awaited<ReturnType<typeof planChecks>>[number]>()
-      for (const id of ids) for (const p of await planChecks($, dir, batch.get(id)!)) plans.set(`${p.label}:${p.argv.join(' ')}`, p)
-      const running: CheckItem[] = [...plans.values()].map(p => ({ label: p.label, status: 'running', detail: [], ms: 0 }))
-      const none: CheckItem[] = plans.size === 0 ? [{ label: 'チェック', status: 'skip', detail: ['このプロジェクトで実行できるチェックが無い'], ms: 0 }] : []
-      const initial: Check = { at: Date.now(), items: [...running, ...none] }
+      // 同じコマンドは 1 回だけ(同じプロジェクトの 2 ファイルを編集しても tsc は 1 回)
+      const unique = new Map<string, CheckPlan>()
+      for (const id of ids) for (const p of await planChecks($, dir, batch.get(id)!)) unique.set(p.argv.join(' '), p)
+      const plans = [...unique.values()]
+      const items: CheckItem[] = plans.length
+        ? plans.map(p => ({ label: p.label, status: 'running', detail: [], ms: 0 }))
+        : [{ label: 'チェック', status: 'skip', detail: ['このプロジェクトで実行できるチェックが無い'], ms: 0 }]
+      const initial: Check = { at: Date.now(), items }
       await setChecks($, c => ids.reduce((acc, id) => ({ ...acc, [id]: initial }), c))
-      for (const plan of plans.values()) {
+      // 結果は位置で差し替える(同じ label のテストが 2 本あっても混ざらない)
+      for (const [k, plan] of plans.entries()) {
         const item = await runCheck($, plan)
         await setChecks($, c =>
           ids.reduce((acc, id) => {
             const prev = acc[id]
-            return prev ? { ...acc, [id]: { ...prev, items: prev.items.map(i => (i.label === item.label ? item : i)) } } : acc
+            return prev ? { ...acc, [id]: { ...prev, items: prev.items.map((it, i) => (i === k ? item : it)) } } : acc
           }, c),
         )
       }

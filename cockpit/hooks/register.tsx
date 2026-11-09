@@ -4,19 +4,22 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Change } from '../types'
 import { observeStep } from './app/draft'
-import { openInEditor, recordChange, recordCommand, recordRead, revertLast } from './app/edits'
-import { PANE_OPEN, rescan, startSession } from './app/session'
+import { openInEditor } from './app/editor'
+import { recordChange, recordCommand, recordRead, revertLast } from './app/edits'
+import { PANE_OPEN, scanAll, startSession } from './app/session'
 import { forgetWorkspaces } from './app/workspaces'
-import { hunkFromEdit, hunkFromWrite } from './domain/edits'
 import { homeOf } from './domain/paths'
 import { parseHeredocWrites, resolveShellPath } from './domain/shell'
 import { PANE, frame, setCodeScroll, setDraft, setHistoryScroll, setIntent, setSelected, setTurnId } from './store'
 import { layout, maxCodeScroll, renderPane } from './ui/pane'
 
-const COMMAND = 'drive'
+const COMMAND = 'cockpit'
 
 let revertArmedAt = 0
 const REVERT_CONFIRM_MS = 3000
+
+/** 直近の描画で見た窓の行数(j / k のキーから上限を出すのに使う)。 */
+let lastWindowRows = 30
 
 /** 1 キーの誤操作を防ぐ:3 秒以内に 2 回押して確定。 */
 async function revertWithConfirm($: EngineInterface): Promise<void> {
@@ -33,13 +36,14 @@ async function revertWithConfirm($: EngineInterface): Promise<void> {
 /** 本文を by 行動かす。0 と上限(本文の長さ − 窓)の間に収める。 */
 async function scrollCode($: EngineInterface, by: number, windowRows?: number): Promise<void> {
   const f = await frame($)
-  const rows = windowRows ?? lastWindowRows
-  const max = maxCodeScroll(f, rows)
+  const max = maxCodeScroll(f, windowRows ?? lastWindowRows)
   await setCodeScroll($, s => Math.max(0, Math.min(max, s + by)))
 }
 
-/** 直近の描画で見た窓の行数(j / k のキーから上限を出すのに使う)。 */
-let lastWindowRows = 30
+/** ツールの適用が終わったら、そのツールのストリーミング中の下書きを消す(並列の別エージェントの下書きは残す)。 */
+function clearDraftOf($: EngineInterface, id: string) {
+  return setDraft($, d => (d?.id === id ? null : d))
+}
 
 function makeActions($: EngineInterface) {
   return {
@@ -56,7 +60,7 @@ function makeActions($: EngineInterface) {
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
-    await $.command.register({ name: COMMAND, description: 'drive のペインにフォーカス(o VS Code で開く · r リバート · j/k スクロール · Esc で戻る)。/drive rescan 依存の再解析、/drive forget 外部ルートを外す。プロンプトからは >revert' })
+    await $.command.register({ name: COMMAND, description: 'cockpit のペインにフォーカス(o VS Code で開く · r リバート · j/k スクロール · Esc で戻る)。/cockpit rescan 依存の再解析、/cockpit forget 外部ルートを外す。プロンプトからは >revert' })
     await startSession($, e.cwd)
     return next(e)
   })
@@ -70,12 +74,12 @@ export const register: Register = on => {
 
   on('command.run', { command: COMMAND }, async ($, e) => {
     const arg = e.args.trim()
-    if (arg === 'rescan') return { text: `再解析しました: ${await rescan($)} files` }
+    if (arg === 'rescan') return { text: `再解析しました: ${await scanAll($)} files` }
     if (arg === 'forget') return { text: `外部ルートを外しました: ${(await forgetWorkspaces($)).join(', ') || '(無し)'}` }
-    if (arg) return { text: `drive: /drive ${arg} はありません。/drive、/drive rescan、/drive forget。リバートはプロンプトで >revert。` }
-    // /drive はペインを開き、キーボードをペインに渡す(x r j k が効く。Esc でプロンプトへ)
+    if (arg) return { text: `cockpit: /cockpit ${arg} はありません。/cockpit、/cockpit rescan、/cockpit forget。リバートはプロンプトで >revert。` }
+    // /cockpit はペインを開き、キーボードをペインに渡す(o r j k が効く。Esc でプロンプトへ)
     const opened = await $.ui.open({ ...PANE_OPEN, focus: true })
-    return { text: opened.isPlaced ? 'drive にフォーカス。o VS Code で開く · r リバート · j/k スクロール · Esc で戻る' : `drive は待機中: ${opened.reason}` }
+    return { text: opened.isPlaced ? 'cockpit にフォーカス。o VS Code で開く · r リバート · j/k スクロール · Esc で戻る' : `cockpit は待機中: ${opened.reason}` }
   })
 
   on('tool.call', { tool: 'Read' }, async ($, e, next) => {
@@ -87,12 +91,11 @@ export const register: Register = on => {
     const file = typeof e.file_path === 'string' ? e.file_path : null
     const before = typeof e.old_string === 'string' ? e.old_string : ''
     const after = typeof e.new_string === 'string' ? e.new_string : ''
-    const content = file ? await $.fs.read(file).catch(() => null) : null
+    const fileBefore = file ? await $.fs.read(file).catch(() => null) : null
     const ran = await next(e)
-    await setDraft($, () => null)
+    await clearDraftOf($, e.tool_use_id)
     if (file && ran.deny === undefined && ran.isError !== true) {
-      const hunk = hunkFromEdit(content, before, after)
-      await recordChange($, { id: e.tool_use_id, file, diff: hunk.diff, symbol: hunk.symbol, isNew: false, tool: 'Edit', before, after, agentId: e.agentId })
+      await recordChange($, { id: e.tool_use_id, tool: 'Edit', file, before, after, isNew: false, fileBefore, ...(e.replace_all === true ? { replaceAll: true as const } : {}), agentId: e.agentId })
     }
     return ran
   })
@@ -100,13 +103,11 @@ export const register: Register = on => {
   on('tool.call', { tool: 'Write' }, async ($, e, next) => {
     const file = typeof e.file_path === 'string' ? e.file_path : null
     const content = typeof e.content === 'string' ? e.content : ''
-    const existed = file ? await $.fs.exists(file).catch(() => false) : false
-    const before = file && existed ? await $.fs.read(file).catch(() => null) : null
+    const before = file ? await $.fs.read(file).catch(() => null) : null // 読めない = 無い(新規)
     const ran = await next(e)
-    await setDraft($, () => null)
+    await clearDraftOf($, e.tool_use_id)
     if (file && ran.deny === undefined && ran.isError !== true) {
-      const hunk = hunkFromWrite(content, !existed)
-      await recordChange($, { id: e.tool_use_id, file, diff: hunk.diff, symbol: hunk.symbol, isNew: !existed, tool: 'Write', before, after: content, agentId: e.agentId })
+      await recordChange($, { id: e.tool_use_id, tool: 'Write', file, before: before ?? '', after: content, isNew: before === null, fileBefore: null, agentId: e.agentId })
     }
     return ran
   })
@@ -121,7 +122,7 @@ export const register: Register = on => {
       existedBefore[file] = await $.fs.read(file).catch(() => null)
     }
     const ran = await next(e)
-    await setDraft($, () => null)
+    await clearDraftOf($, e.tool_use_id)
     if (ran.deny !== undefined) return ran
     // Bash の結果は { stdout, stderr, interrupted } だけで終了コードは無い。
     // 失敗は isError と、モデルが読むテキストの「Exit code N」で分かる。
@@ -147,22 +148,27 @@ export const register: Register = on => {
     return yield* observeStep($, next(e), e.agentId)
   })
 
+  // 本体のターンが終わったら全部片付ける。サブエージェントのターンの終わりは、そのエージェントの下書きだけ消す
+  // (本体のターンはまだ続いているので turnId は触らない)
   on('turn.complete', async ($, e, next) => {
     const done = await next(e)
-    await setDraft($, () => null)
-    await setTurnId($, null)
+    if (e.agentId === undefined) {
+      await setDraft($, () => null)
+      await setTurnId($, null)
+    } else {
+      await setDraft($, d => (d?.agentId === e.agentId ? null : d))
+    }
     return done
   })
 
-  // ペインの上のホイール・スクロールキーは、ペイン全体ではなく本文のコードを動かす
-  // ホイールが履歴の上なら履歴、それ以外なら本文のコードを動かす(行の配分は ui/pane の layout と同じ)
+  // ペインの上のホイール・スクロールキーは、ペイン全体ではなく中身を動かす:
+  // ホイールが履歴の上なら履歴、それ以外なら本文のコード(行の配分は ui/pane の layout と同じ)
   on('ui.scroll', { requestId: PANE }, async ($, e) => {
     if (e.component !== 'Pane') return {}
-    const { historyStart } = layout(e.bodyRows)
+    const { historyStart, historyRows } = layout(e.bodyRows)
     const row = e.pointer ? e.pointer.row + e.offset : -1
     if (row >= historyStart) {
       const f = await frame($)
-      const { historyRows } = layout(e.bodyRows)
       const max = Math.max(0, f.changes.length - historyRows)
       await setHistoryScroll($, s => Math.max(0, Math.min(max, s + Math.sign(e.by))))
     } else {

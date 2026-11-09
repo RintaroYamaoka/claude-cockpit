@@ -26,7 +26,3 @@ export function layerColor(rel: string): string {
   const top = rel.split('/')[0] ?? ''
   return LAYER[top] ?? OTHER
 }
-
-export function moduleColor(module: string): string {
-  return layerColor(module)
-}

@@ -65,7 +65,7 @@ export async function runCheck($: Pick<EngineInterface, 'process' | 'clock'>, pl
       .split('\n')
       .map(l => l.trim())
       .filter(l => l && !/^\s*at\s/.test(l))
-    const errors = lines.filter(l => /error|FAIL|✗|×|Error/.test(l))
+    const errors = lines.filter(l => /error|fail|✗|×/i.test(l))
     const detail = (errors.length ? errors : lines).slice(0, 8).map(l => l.replace(`${plan.cwd}/`, ''))
     return { label: plan.label, status: 'fail', detail, ms }
   } catch (err) {

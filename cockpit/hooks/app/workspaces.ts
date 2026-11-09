@@ -7,8 +7,14 @@ import { listFiles } from '../domain/tree'
 import { getRoot, getWorkspaces, setFiles, setWorkspaces } from '../store'
 import { analyzeWorkspace } from './deps'
 
-/** 絶対パスをツリーのパスへ。root の外なら、その場所のプロジェクト root を見つけて加える。 */
-export async function resolveRel($: EngineInterface, file: string): Promise<string> {
+/** 絶対パスをツリーのパスへ(見るだけ。外部ルートは足さない)。 */
+export async function relOf($: EngineInterface, file: string): Promise<string> {
+  const [root, workspaces] = await Promise.all([getRoot($), getWorkspaces($)])
+  return relativize(root, workspaces, file)
+}
+
+/** 絶対パスをツリーのパスへ。root の外を書き換えたなら、その場所のプロジェクト root を見つけて外部ルートに加える。 */
+export async function adoptRel($: EngineInterface, file: string): Promise<string> {
   const [root, workspaces] = await Promise.all([getRoot($), getWorkspaces($)])
   if (!isOutside(root, workspaces, file)) return relativize(root, workspaces, file)
   const home = homeOf(file)
@@ -17,7 +23,7 @@ export async function resolveRel($: EngineInterface, file: string): Promise<stri
   if (!dir || dir === home) return relativize(root, workspaces, file)
   const added: Workspace = { dir, label: labelFor(dir, workspaces) }
   const next = await setWorkspaces($, list => (list.some(w => w.dir === dir) ? list : [...list, added]))
-  await $.store.set(`drive:workspaces:${root}`, next)
+  await $.store.set(`cockpit:workspaces:${root}`, next)
   $.ui.toast(`外部ルートを追加: ${added.label} (${shortenHome(dir)})`)
   $.clock.after(0, () => void loadWorkspace($, added))
   return relativize(root, next, file)
@@ -35,6 +41,6 @@ export async function forgetWorkspaces($: EngineInterface): Promise<string[]> {
   const [root, workspaces] = await Promise.all([getRoot($), getWorkspaces($)])
   await setFiles($, f => f.filter(p => !workspaces.some(w => p.startsWith(`${w.label}/`))))
   await setWorkspaces($, () => [])
-  await $.store.set(`drive:workspaces:${root}`, [])
+  await $.store.set(`cockpit:workspaces:${root}`, [])
   return workspaces.map(w => w.label)
 }

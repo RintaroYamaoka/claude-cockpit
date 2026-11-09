@@ -1,9 +1,9 @@
-// 純粋なロジックの単体テスト。claude plugin test ./drive で回す。
+// 純粋なロジックの単体テスト。claude plugin test ./cockpit で回す。
 import { expect, test } from 'claude-code/testing'
 
 import { analyze, dependentsOf, addedEdgesBetween, moduleOf, parseExports, parseImports, resolveImport } from '../hooks/domain/deps'
 import { decodePartialJsonString, extractDraft, tailLines } from '../hooks/domain/draft'
-import { countLines, hunkFromEdit, hunkFromWrite, structureKindOf, symbolNear, windowHunk } from '../hooks/domain/edits'
+import { hunkFromEdit, hunkFromWrite, lineDiff, structureKindOf, symbolNear, windowHunk } from '../hooks/domain/edits'
 import { absolutize, isOutside, labelFor, projectDirOf, relativize, shortenHome } from '../hooks/domain/paths'
 import { parseHeredocWrites, resolveShellPath, summarizeCommand, tailOutput } from '../hooks/domain/shell'
 
@@ -21,18 +21,36 @@ test('パス:root の中・外部ルート・どちらでもない', async () =>
   expect(shortenHome('/home/u/a/b')).toBe('~/a/b')
 })
 
-test('ハンク:Edit から行番号と宣言名、窓切り', async () => {
+test('行差分:共通の前後を剥がし、途中の共通行は文脈として残す', async () => {
+  const d = lineDiff(['a', 'b', 'c', 'd'], ['a', 'x', 'c', 'd', 'e'])
+  expect(d.map(l => l.op + l.text)).toEqual([' a', '-b', '+x', ' c', ' d', '+e'])
+  expect(lineDiff([], ['a']).map(l => l.op)).toEqual(['+'])
+  expect(lineDiff(['a'], ['a']).map(l => l.op)).toEqual([' '])
+})
+
+test('ハンク:Edit から行番号と宣言名、Write は本当の差分、窓切り', async () => {
   const src = 'export async function POST(req: Request) {\n  const body = await req.json()\n  return body\n}\n'
   const h = hunkFromEdit(src, 'const body = await req.json()', 'const body = Schema.parse(\n  await req.json())')
   expect(h.symbol).toBe('POST')
   expect(h.diff.split('\n')[0]).toBe('@@ -2,1 +2,2 @@')
-  expect(countLines(h.diff)).toEqual({ plus: 2, minus: 1 })
-  const w = windowHunk(h.diff, 1, 1)
-  expect(w.above).toBe(1)
-  expect(w.below).toBe(1)
-  expect(w.diff.split('\n').length).toBe(2)
-  expect(hunkFromWrite('a\nb\nc', true).diff).toBe('@@ -0,0 +1,3 @@\n+a\n+b\n+c')
+  expect(h).toMatchObject({ plus: 2, minus: 1 })
+  // 30 行の置換で 1 行しか違わなければ、その 1 行と前後 2 行の文脈だけ
+  const big = Array.from({ length: 30 }, (_, i) => `l${i}`)
+  const one = hunkFromEdit(big.join('\n'), big.join('\n'), big.map(l => (l === 'l10' ? 'L10' : l)).join('\n'))
+  expect(one.diff.split('\n')).toEqual(['@@ -9,5 +9,5 @@', ' l8', ' l9', '-l10', '+L10', ' l11', ' l12'])
+  expect(one).toMatchObject({ plus: 1, minus: 1 })
+  // Write:新規は全部追加、既存はその差分
+  expect(hunkFromWrite(null, 'a\nb\nc').diff).toBe('@@ -0,0 +1,3 @@\n+a\n+b\n+c')
+  expect(hunkFromWrite('a\nb\nc', 'a\nB\nc').diff).toBe('@@ -1,3 +1,3 @@\n a\n-b\n+B\n c')
+  // 窓切り:見出しは文脈行も数える
+  const w = windowHunk(one.diff, 2, 2)
+  expect(w).toMatchObject({ above: 2, below: 2 })
+  expect(w.diff).toBe('@@ -11,1 +11,1 @@\n-l10\n+L10')
   expect(symbolNear('const f = () => {\n  x\n', 20)).toBe('f')
+  // 制御構文は宣言ではない:if の中を変更しても、その上の関数名が出る
+  const ctl = 'export function handler(req) {\n  if (req.ok) {\n    return 1\n  }\n'
+  expect(symbolNear(ctl, ctl.indexOf('return'))).toBe('handler')
+  expect(symbolNear('  while (x) {\n    y\n', 18)).toBe(null)
 })
 
 test('構造の変更の種類', async () => {
@@ -75,11 +93,12 @@ test('依存:import の解決、exports、dependents、増えた辺', async () =
   expect(moduleOf('package.json')).toBe('(root)')
 })
 
-test('Bash:ヒアドキュメントの書き込み、要約、出力の末尾、パスの解決', async () => {
-  const cmd = "cd /x && cat > hooks/a.ts <<'EOF'\nexport const a = 1\nEOF\ncat >> notes.md <<EOF\nmore\nEOF\necho done"
+test('Bash:ヒアドキュメントの書き込み(両方の順)、要約、出力の末尾、パスの解決', async () => {
+  const cmd = "cd /x && cat > hooks/a.ts <<'EOF'\nexport const a = 1\nEOF\ncat >> notes.md <<EOF\nmore\nEOF\ncat <<'EOF' > b.txt\nbee\nEOF\necho done"
   expect(parseHeredocWrites(cmd)).toEqual([
     { path: 'hooks/a.ts', content: 'export const a = 1', isAppend: false },
     { path: 'notes.md', content: 'more', isAppend: true },
+    { path: 'b.txt', content: 'bee', isAppend: false },
   ])
   expect(summarizeCommand('cd /x && npm test -- --watch', 80)).toBe('npm test -- --watch')
   expect(summarizeCommand('# comment\nls -la\npwd', 80)).toBe('ls -la')

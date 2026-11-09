@@ -5,15 +5,15 @@
 //   r リバート  j/k スクロール
 import type { EngineInterface, RenderInput } from 'claude-code'
 
-import type { Change } from '../../types'
+import type { Change, CommandChange } from '../../types'
 import { STATUS_MARK } from '../domain/checks'
 import { dependentsOf, edgeKey, moduleOf } from '../domain/deps'
 import { tailLines } from '../domain/draft'
-import { KIND_LABEL, countLines, windowHunk } from '../domain/edits'
+import { KIND_LABEL, isFileChange, windowHunk } from '../domain/edits'
 import { insideWorkspace, relativize } from '../domain/paths'
 import type { Frame } from '../store'
 import { clock, fit, isPulseOn } from './format'
-import { FAIL, NOW, OK, WARN, layerColor, moduleColor } from './palette'
+import { FAIL, NOW, OK, WARN, layerColor } from './palette'
 
 type PaneInput = Extract<RenderInput, { component: 'Pane' }>
 
@@ -27,10 +27,9 @@ const DEPS_ROWS = 3 // 対象ファイル・imports・dependents
  * ui.scroll のフックも同じ計算で「ホイールが履歴の上か」を判定する。
  */
 /** Bash の本文の行:コマンド全文 → 空行 → 出力全文。表示とスクロール上限の両方がこれを使う。 */
-export function bashLines(c: Change): string[] {
-  const commandLines = (c.command ?? c.path).split('\n').map(l => `$ ${l}`)
-  const outputLines = (c.output ?? '').split('\n')
-  return [...commandLines, ...(outputLines.length && outputLines[0] !== '' ? ['', ...outputLines] : [])]
+export function bashLines(c: CommandChange): string[] {
+  const commandLines = c.command.split('\n').map(l => `$ ${l}`)
+  return c.output ? [...commandLines, '', ...c.output.split('\n')] : commandLines
 }
 
 /** 本文のスクロール量の上限(これ以上回しても動かない。戻れなくなるのを防ぐ)。 */
@@ -62,18 +61,17 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
   const isWorking = f.turnId !== null
   const list = [...f.changes].reverse()
   const latest = list[0]
-  const hasRevertable = list.some(c => !c.reverted && c.tool !== 'Bash')
+  const hasRevertable = list.some(c => isFileChange(c) && !c.reverted)
   // 履歴で選んだ変更があればそれを映す(その時の画面に戻る)。無ければ最新
   const selected = f.selected ? list.find(c => c.id === f.selected) ?? null : null
   const shown = selected ?? latest
   const isHistory = selected !== null
 
-
   // ---- 対象ファイルの依存(履歴を見ている時はその変更のファイル)
-  const focus = isHistory && selected && selected.tool !== 'Bash' ? selected.path : f.focus
+  const focus = selected && isFileChange(selected) ? selected.path : f.focus
   const node = focus ? f.deps[focus] : undefined
   const focusModule = focus ? moduleOf(focus) : ''
-  const colorOf = (m: string) => moduleColor(insideWorkspace(m, f.workspaces))
+  const colorOf = (m: string) => layerColor(insideWorkspace(m, f.workspaces))
   const importModules = node ? [...new Set(node.imports.map(moduleOf))].filter(m => m !== focusModule) : []
   const dependents = focus ? dependentsOf(f.deps, focus) : []
   const dependentModules = [...new Set(dependents.map(moduleOf))]
@@ -180,18 +178,18 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
     if (c.tool === 'Bash') {
       const ok = c.exitCode === 0
       // 本文 = コマンド全文 → 空行 → 出力全文。先頭から表示し、スクロールで全部読める
-      const commandLines = (c.command ?? c.path).split('\n')
-      const outputLines = (c.output ?? '').split('\n')
+      const commandRows = c.command.split('\n').length
+      const hasOutput = Boolean(c.output)
       const all = bashLines(c)
       const start = Math.max(0, Math.min(f.codeScroll, Math.max(0, all.length - bodyRows)))
       const out = all.slice(start, start + bodyRows)
       const above = start
       const below = all.length - start - out.length
-      const isCommandRow = (i: number) => start + i < commandLines.length
+      const isCommandRow = (i: number) => start + i < commandRows
       heading = (
         <Text key="h" wrap="truncate-end">
           <Text color={ok ? OK : FAIL}>$ </Text>
-          <Text>{fit(c.path, Math.max(8, W - 26))}</Text>
+          <Text>{fit(c.summary, Math.max(8, W - 26))}</Text>
           <Text color={ok ? OK : FAIL}> {ok ? '✓' : `✗ ${c.exitCode}`}</Text>
           <Text dimColor> {clock(c.at)}</Text>
           {c.agentId ? <Text dimColor>  ↳ サブエージェント</Text> : null}
@@ -212,12 +210,12 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
               </Text>
             ),
           )}
-          {outputLines.length === 1 && outputLines[0] === '' && commandLines.length < bodyRows ? <Text dimColor>(出力なし)</Text> : null}
+          {!hasOutput && commandRows < bodyRows ? <Text dimColor>(出力なし)</Text> : null}
         </Box>
       )
       result = <Text key="r"> </Text>
     } else {
-      const { plus, minus } = countLines(c.diff)
+      const { plus, minus } = c
       // チェック失敗の先頭行は結果の行に続けて出す(補足行は持たない)
       const firstFailure = check?.items.find(i => i.status === 'fail')?.detail[0] ?? null
       // diff はスクロール可能:offset 行目から(@@ の 1 行を除いた)bodyRows − 1 行。見えていない行数は見出しに
@@ -281,15 +279,15 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
           <Button key={`hb:${c.id}`} plain onPress={onPress}>
             <Text color={isShown ? NOW : ok ? OK : FAIL}>{isShown ? '▸' : ok ? '✓' : '✗'} </Text>
             <Text dimColor={!isShown}>{clock(c.at)} {toolLabel} {c.agentId ? '↳ ' : ''}$ </Text>
-            <Text weight={isShown ? 'bold' : 'regular'}>{fit(c.path, Math.max(12, W - 20))}</Text>
+            <Text weight={isShown ? 'bold' : 'regular'}>{fit(c.summary, Math.max(12, W - 20))}</Text>
           </Button>
         </Box>
       )
     }
     const ck = f.checks[c.id]
-    const mark = ck ? (ck.items.some(i => i.status === 'fail') ? '✗' : ck.items.some(i => i.status === 'running') ? '⏳' : '✓') : ' '
-    const n = countLines(c.diff)
-    const counts = ` +${n.plus} -${n.minus}`
+    // チェックの結果:失敗 > 実行中 > 成功 > 何も実行できなかった(–)
+    const mark = ck ? (ck.items.some(i => i.status === 'fail') ? '✗' : ck.items.some(i => i.status === 'running') ? '⏳' : ck.items.some(i => i.status === 'ok') ? '✓' : '–') : ' '
+    const counts = ` +${c.plus} -${c.minus}`
     const tail = (c.symbol ? c.symbol.length + 3 : 0) + counts.length + (c.reverted ? 2 : 0) + (c.agentId ? 2 : 0)
     return (
       <Box key={`h:${c.id}`} height={1} width={W} overflow="hidden">

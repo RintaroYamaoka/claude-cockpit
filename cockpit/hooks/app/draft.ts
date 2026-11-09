@@ -7,7 +7,8 @@ import { setDraft, setIntent } from '../store'
 
 let draftWrittenAt = 0
 const DRAFT_INTERVAL_MS = 60
-const STREAMED_TOOLS = new Set(['Edit', 'Write', 'Bash'])
+const STREAMED_TOOLS = new Set<Draft['tool']>(['Edit', 'Write', 'Bash'])
+const isStreamed = (name: string): name is Draft['tool'] => STREAMED_TOOLS.has(name as Draft['tool'])
 
 /** チャンクを通しながら、意図(本体だけ)と Draft(サブエージェントも)を更新する。 */
 export async function* observeStep($: EngineInterface, stream: HookStream<TurnStepChunk, TurnStepResult>, agentId?: string): AsyncGenerator<TurnStepChunk, TurnStepResult> {
@@ -28,7 +29,7 @@ export async function* observeStep($: EngineInterface, stream: HookStream<TurnSt
       inputs.set(chunk.index, { id: chunk.id, name: chunk.name, json: '' })
     } else if (chunk.kind === 'input') {
       const slot = inputs.get(chunk.index)
-      if (!slot || !STREAMED_TOOLS.has(slot.name)) continue
+      if (!slot || !isStreamed(slot.name)) continue
       slot.json += chunk.json
       const now = await $.clock.now()
       if (now - draftWrittenAt < DRAFT_INTERVAL_MS) continue
