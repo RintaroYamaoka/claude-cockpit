@@ -219,7 +219,7 @@ const depsAll = (P,k,t) => `swapTo("#${P}-r0-${k}",${t},tl); swapTo("#${P}-r1-${
 const BASE = [['p0','p0'],['p1','p1'],[null,'e'],['i0','i0'],['i1','i1'],['i2','i2'],[null,'e']];
 const R_BW = [['b0','b0'],['b1','b1'],[null,'e'],['w0','w0'],['w1','w1'],[null,'e']];
 const R_U = [['u0','u0'],['u1','u1'],['u2','u2'],[null,'e'],['v0','u0'],['v1','u1'],['v2','u2b'],[null,'e']];
-const R_A = [['a0','a0'],['a1','a1'],[null,'e']];
+const R_A = [['ag0','a0'],['ag1','a1'],[null,'e']];
 const R_RV = [['rv0','rv0',1],['rv1','rv1',1],['rv2','rv2',1],['e8','e',1],['ak','ak',1]];
 const RES_VAL = resultRow(11,1,[['ok','型チェック','2.4'],['ok','テスト','1.0']]);
 const RES_R1F = resultRow(2,5,[['ok','型チェック','2.8'],['fail','テスト','1.1']],'ZodError: Invalid email');
@@ -506,7 +506,7 @@ unwords("#${P}-c5",33.6,tl); unwords("#${P}-s5",33.6,tl);
 // ===== 7 history(28 s):1 行の読み方 → ✗ の行 → Write の行 → 新しい変更が来ても動かない
 {
   const P='hs';
-  const rows=[...BASE,...R_BW,...R_U,['a0','a0',1],['a1','a1',1],['e6','e',1]];
+  const rows=[...BASE,...R_BW,...R_U,['ag0','a0',1],['ag1','a1',1],['e6','e',1]];
   const H_R1_H = hDiff({path:'app/api/leads/route.ts',cls:'app',symbol:'POST',kind:'ルーティング',time:'10:42',hidden:4,history:true});
   const pn = pane(P,{
     r0:[['route',F_ROUTE],['val',F_VAL]], r1:[['route',I_ROUTE],['val',I_VAL]], r2:[['route',D_ROUTE],['val',D_VAL]], r4:INTENT,
@@ -569,7 +569,7 @@ pick("#${P}-r19-r2",17.25,tl); pick("#${P}-r20-val",17.25,tl);
 tl.to("#${P}-ptr",{x:1500,y:900,opacity:0,duration:0.6,ease:"power2.in"},17.9);
 unwords("#${P}-c3",18.6,tl); unwords("#${P}-s3",18.6,tl);
 words("#${P}-c4",19.0,tl,0.1); words("#${P}-s4",19.4,tl,0.05);
-rise("#${P}-a0",19.6,tl,8); rise("#${P}-a1",19.9,tl,8);
+rise("#${P}-ag0",19.6,tl,8); rise("#${P}-ag1",19.9,tl,8);
 scrollTo("#${P}-txin",19.6,tl,-90);
 pick("#${P}-r17-b",20.0,tl);
 flip("#${P}-r17-b",20.0,tl,{color:"#d97757"},{color:"#7f849c"},1.0);
