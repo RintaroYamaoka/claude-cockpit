@@ -6,7 +6,7 @@ AI がコードを書く速さに、人の把握が追いつかなくなった�
 それが分からないまま進むと、自分のコードではなくなっていく。
 cockpit は、その把握を transcript から目を離さずに取り戻すための計器盤を右に 1 枚足す。見るだけでなく、その場で開いて、戻せる。左の Claude Code は素のまま。
 
-[![解説動画(5 分・日本語ナレーション・英語字幕)](media/cockpit-intro-thumb.jpg)](media/cockpit-intro.mp4)
+https://github.com/user-attachments/assets/b6df1973-bef3-47d1-9bb4-a464dfe8626d
 
 ▶ [解説動画(5 分)](media/cockpit-intro.mp4) ― 1 つの作業を追いながら、画面の要素を出てきた順に全部説明する。
 
