@@ -10,8 +10,8 @@ import { forgetWorkspaces } from './app/workspaces'
 import { hunkFromEdit, hunkFromWrite } from './domain/edits'
 import { homeOf } from './domain/paths'
 import { parseHeredocWrites, resolveShellPath } from './domain/shell'
-import { PANE, frame, setCodeScroll, setDraft, setIntent, setSelected, setTurnId } from './store'
-import { renderPane } from './ui/pane'
+import { PANE, frame, setCodeScroll, setDraft, setHistoryScroll, setIntent, setSelected, setTurnId } from './store'
+import { layout, renderPane } from './ui/pane'
 
 const COMMAND = 'drive'
 
@@ -144,9 +144,13 @@ export const register: Register = on => {
   })
 
   // ペインの上のホイール・スクロールキーは、ペイン全体ではなく本文のコードを動かす
+  // ホイールが履歴の上なら履歴、それ以外なら本文のコードを動かす(行の配分は ui/pane の layout と同じ)
   on('ui.scroll', { requestId: PANE }, async ($, e) => {
     if (e.component !== 'Pane') return {}
-    await setCodeScroll($, s => Math.max(0, s + e.by))
+    const { historyStart } = layout(e.bodyRows)
+    const row = e.pointer ? e.pointer.row + e.offset : -1
+    if (row >= historyStart) await setHistoryScroll($, s => Math.max(0, s + Math.sign(e.by)))
+    else await setCodeScroll($, s => Math.max(0, s + e.by))
     return {}
   })
 

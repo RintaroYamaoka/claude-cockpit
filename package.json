@@ -1,0 +1,9 @@
+{
+  "name": "claude-coding-driver",
+  "private": true,
+  "description": "drive — AI 駆動開発を自分で運転する Claude Code の mod。npm の依存は無く、テストは claude plugin test で回す",
+  "scripts": {
+    "test": "claude plugin test ./drive",
+    "validate": "claude plugin validate ./drive"
+  }
+}

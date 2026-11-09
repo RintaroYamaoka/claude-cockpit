@@ -54,6 +54,7 @@ declare module 'claude-code' {
       tick: number
       selected: string | null // 履歴で選んだ変更(id)。null なら最新を映す
       codeScroll: number // 本文(diff / 出力)の先頭から何行スクロールしたか
+      historyScroll: number // 履歴の先頭から何件スクロールしたか
     }
   }
 }
