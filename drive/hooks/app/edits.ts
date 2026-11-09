@@ -5,7 +5,21 @@ import type { Change } from '../../types'
 import { hunkFromWrite, structureKindOf } from '../domain/edits'
 import { homeOf, projectDirOf } from '../domain/paths'
 import { parseHeredocWrites, resolveShellPath, summarizeCommand, tailOutput } from '../domain/shell'
-import { getChanges, getRoot, getWorkspaces, setChanges, setCodeScroll, setFiles, setFocus, setHistoryScroll, setSelected } from '../store'
+import { getChanges, getRoot, getSelected, getWorkspaces, setChanges, setCodeScroll, setFiles, setFocus, setHistoryScroll } from '../store'
+
+/**
+ * 新しい変更が来た時の画面の扱い。最新を見ているなら最新に追従(スクロールも先頭へ)。
+ * 履歴を見ている最中なら画面を変えない:本文はそのまま、履歴は 1 件ずれる分だけ補正して同じ行が見え続ける。
+ */
+async function followOrHold($: EngineInterface): Promise<void> {
+  const selected = await getSelected($)
+  if (selected === null) {
+    await setCodeScroll($, () => 0)
+    await setHistoryScroll($, () => 0)
+  } else {
+    await setHistoryScroll($, s => s + 1)
+  }
+}
 import { scheduleChecks } from './checks'
 import { reanalyze } from './deps'
 import { resolveRel } from './workspaces'
@@ -36,9 +50,7 @@ export async function recordChange($: EngineInterface, a: Applied): Promise<void
     ...(a.agentId ? { agentId: a.agentId } : {}),
   }
   await setFocus($, rel)
-  await setSelected($, null) // 新しい変更が来たら最新に戻す(ライブ感を優先)
-  await setCodeScroll($, () => 0)
-  await setHistoryScroll($, () => 0)
+  await followOrHold($)
   await setChanges($, list => [...list.filter(x => x.id !== a.id), change].slice(-KEEP))
   if (a.isNew && !rel.startsWith('~/')) await setFiles($, f => (f.includes(rel) ? f : [...f, rel]))
   await reanalyze($, rel, a.file, now)
@@ -56,9 +68,7 @@ export async function recordCommand($: EngineInterface, r: RanCommand): Promise<
     before: null, after: null, isNew: false, tool: 'Bash', exitCode: r.exitCode, command: r.command, output: tailOutput(r.output, 2000).join('\n'),
     ...(r.agentId ? { agentId: r.agentId } : {}),
   }
-  await setSelected($, null)
-  await setCodeScroll($, () => 0)
-  await setHistoryScroll($, () => 0)
+  await followOrHold($)
   await setChanges($, list => [...list.filter(x => x.id !== r.id), entry].slice(-KEEP))
   if (r.exitCode !== 0) return
   for (const w of parseHeredocWrites(r.command)) {
