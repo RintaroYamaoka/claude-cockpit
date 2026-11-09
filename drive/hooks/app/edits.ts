@@ -90,16 +90,27 @@ export async function openInEditor($: EngineInterface, change: Change): Promise<
   // プロジェクトのフォルダをワークスペースとして開き、その中でファイルを変更位置の行に開く
   const [root, workspaces] = await Promise.all([getRoot($), getWorkspaces($)])
   const project = projectDirOf(root, workspaces, target)
-  const fileArgs = isFile ? [project, '-g', `${target}:${line}`] : [project]
+  // フォルダとファイルを 1 回で渡すとファイルが開かないことがあるので、2 段階:フォルダ → そのウィンドウでファイルを行指定で
+  const steps: string[][] = isFile ? [[project], ['-g', `${target}:${line}`]] : [[project]]
   const found = await $.process.run(['sh', '-c', 'command -v code || true'], { timeoutMs: 5000 }).catch(() => null)
   const code = found?.stdout.trim().split('\n')[0] ?? ''
   const done = `VS Code で開きました: ${project.split('/').pop()}${isFile ? ` › ${change.tool === 'Bash' ? target.split('/').pop() : change.path}:${line}` : ''}`
+  const run = async (argv: string[]) =>
+    $.process.run(argv, { timeoutMs: 30_000 }).catch(err => ({ exitCode: /timeout|timed out/i.test(String(err)) ? 0 : 127, stderr: String(err), stdout: '' }))
 
-  // 1. `code <プロジェクト> -g <ファイル>:<行>`。WSL では Remote-WSL のリモート CLI 経由で、WSL 側のウィンドウにフォルダごと開く
+  // 1. `code`(WSL では Remote-WSL のリモート CLI 経由。WSL 側のウィンドウにフォルダごと開く)
   if (code) {
-    const r = await $.process.run([code, ...fileArgs], { timeoutMs: 30_000 }).catch(err => ({ exitCode: /timeout|timed out/i.test(String(err)) ? 0 : 127, stderr: String(err), stdout: '' }))
-    if (r.exitCode === 0) return done
-    if (!isWsl) return `開けませんでした: ${(r.stderr || '').trim().slice(0, 120)}`
+    let failed: { exitCode: number; stderr: string } | null = null
+    for (const args of steps) {
+      const r = await run([code, ...args])
+      if (r.exitCode !== 0) {
+        failed = r
+        break
+      }
+      if (steps.length > 1 && args === steps[0]) await $.clock.sleep(800) // フォルダのウィンドウが立つのを待つ
+    }
+    if (!failed) return done
+    if (!isWsl) return `開けませんでした: ${(failed.stderr || '').trim().slice(0, 120)}`
   } else if (!isWsl) {
     return 'VS Code の code コマンドが PATH にありません。'
   }
@@ -111,8 +122,11 @@ export async function openInEditor($: EngineInterface, change: Change): Promise<
   const exe = probe?.stdout.trim().split('\n')[0] ?? ''
   if (!exe) return 'VS Code(Code.exe)が見つかりません。'
   const distro = (await $.process.run(['sh', '-c', 'echo "$WSL_DISTRO_NAME"'], { timeoutMs: 3000 }).catch(() => null))?.stdout.trim() || 'Ubuntu'
-  const r = await $.process.run([exe, '--remote', `wsl+${distro}`, ...fileArgs], { timeoutMs: 30_000 }).catch(err => ({ exitCode: /timeout|timed out/i.test(String(err)) ? 0 : 1, stderr: String(err), stdout: '' }))
-  if (r.exitCode !== 0) return `開けませんでした: ${(r.stderr || '').trim().split('\n').find(l => !/^\[main|DeprecationWarning|Unknown channel|^\(Use /.test(l)) ?? ''}`.slice(0, 160)
+  for (const args of steps) {
+    const r = await run([exe, '--remote', `wsl+${distro}`, ...args])
+    if (r.exitCode !== 0) return `開けませんでした: ${(r.stderr || '').trim().split('\n').find(l => !/^\[main|DeprecationWarning|Unknown channel|^\(Use /.test(l)) ?? ''}`.slice(0, 160)
+    if (steps.length > 1 && args === steps[0]) await $.clock.sleep(800)
+  }
   return `${done}(Code.exe 経由。VS Code から一度 WSL に接続すると code コマンドが使えるようになります)`
 }
 
