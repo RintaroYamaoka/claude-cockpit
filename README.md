@@ -6,7 +6,7 @@ AI がコードを書く速さに、人の把握が追いつかなくなった�
 それが分からないまま進むと、自分のコードではなくなっていく。
 cockpit は、その把握を transcript から目を離さずに取り戻すための計器盤を右に 1 枚足す。見るだけでなく、その場で開いて、戻せる。左の Claude Code は素のまま。
 
-https://github.com/user-attachments/assets/b6df1973-bef3-47d1-9bb4-a464dfe8626d
+https://github.com/user-attachments/assets/6b3388b1-aa87-4295-bf10-30c8ec1894be
 
 
 計器は 4 つ(流れるコードと本当の差分・そのファイルの依存・編集直後のチェック・履歴)、操作は 2 つ(`o` で VS Code、`r` でリバート)。設定は無い。
