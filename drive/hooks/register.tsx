@@ -11,7 +11,7 @@ import { hunkFromEdit, hunkFromWrite } from './domain/edits'
 import { homeOf } from './domain/paths'
 import { parseHeredocWrites, resolveShellPath } from './domain/shell'
 import { PANE, frame, setCodeScroll, setDraft, setHistoryScroll, setIntent, setSelected, setTurnId } from './store'
-import { layout, renderPane } from './ui/pane'
+import { layout, maxCodeScroll, renderPane } from './ui/pane'
 
 const COMMAND = 'drive'
 
@@ -30,6 +30,17 @@ async function revertWithConfirm($: EngineInterface): Promise<void> {
   $.ui.toast(await revertLast($))
 }
 
+/** 本文を by 行動かす。0 と上限(本文の長さ − 窓)の間に収める。 */
+async function scrollCode($: EngineInterface, by: number, windowRows?: number): Promise<void> {
+  const f = await frame($)
+  const rows = windowRows ?? lastWindowRows
+  const max = maxCodeScroll(f, rows)
+  await setCodeScroll($, s => Math.max(0, Math.min(max, s + by)))
+}
+
+/** 直近の描画で見た窓の行数(j / k のキーから上限を出すのに使う)。 */
+let lastWindowRows = 30
+
 function makeActions($: EngineInterface) {
   return {
     revert: () => void revertWithConfirm($),
@@ -38,7 +49,7 @@ function makeActions($: EngineInterface) {
         await setSelected($, id)
         await setCodeScroll($, () => 0)
       })(),
-    scroll: (by: number) => void setCodeScroll($, s => Math.max(0, s + by)),
+    scroll: (by: number) => void scrollCode($, by),
     open: (change: Change) => void openInEditor($, change).then(msg => $.ui.toast(msg)),
   }
 }
@@ -149,10 +160,19 @@ export const register: Register = on => {
     if (e.component !== 'Pane') return {}
     const { historyStart } = layout(e.bodyRows)
     const row = e.pointer ? e.pointer.row + e.offset : -1
-    if (row >= historyStart) await setHistoryScroll($, s => Math.max(0, s + Math.sign(e.by)))
-    else await setCodeScroll($, s => Math.max(0, s + e.by))
+    if (row >= historyStart) {
+      const f = await frame($)
+      const { historyRows } = layout(e.bodyRows)
+      const max = Math.max(0, f.changes.length - historyRows)
+      await setHistoryScroll($, s => Math.max(0, Math.min(max, s + Math.sign(e.by))))
+    } else {
+      await scrollCode($, e.by, e.bodyRows)
+    }
     return {}
   })
 
-  on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => renderPane($, e, await frame($), makeActions($)))
+  on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
+    lastWindowRows = e.props.scroll.bodyRows
+    return renderPane($, e, await frame($), makeActions($))
+  })
 }

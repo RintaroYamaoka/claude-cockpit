@@ -26,6 +26,23 @@ const DEPS_ROWS = 3 // 対象ファイル・imports・dependents
  * 木は窓にぴったり収める。ホイールは窓の端でも ui.scroll として届く(仕様)ので、はみ出させない。
  * ui.scroll のフックも同じ計算で「ホイールが履歴の上か」を判定する。
  */
+/** Bash の本文の行:コマンド全文 → 空行 → 出力全文。表示とスクロール上限の両方がこれを使う。 */
+export function bashLines(c: Change): string[] {
+  const commandLines = (c.command ?? c.path).split('\n').map(l => `$ ${l}`)
+  const outputLines = (c.output ?? '').split('\n')
+  return [...commandLines, ...(outputLines.length && outputLines[0] !== '' ? ['', ...outputLines] : [])]
+}
+
+/** 本文のスクロール量の上限(これ以上回しても動かない。戻れなくなるのを防ぐ)。 */
+export function maxCodeScroll(f: Frame, windowRows: number): number {
+  const { bodyRows } = layout(windowRows)
+  const list = [...f.changes].reverse()
+  const shown = (f.selected ? list.find(c => c.id === f.selected) : undefined) ?? list[0]
+  if (!shown || (f.draft && f.draft.text.length > 0 && !f.selected)) return 0
+  if (shown.tool === 'Bash') return Math.max(0, bashLines(shown).length - bodyRows)
+  return Math.max(0, shown.diff.split('\n').length - 1 - (bodyRows - 1))
+}
+
 export function layout(windowRows: number) {
   // 窓の最後の 1 行はペインが自分用に使う(そこに描くと最下行が隠れる)ので、中身は窓 − 1 行
   const R = Math.max(12, windowRows - 1)
@@ -163,9 +180,9 @@ export function renderPane($: EngineInterface, e: PaneInput, f: Frame, actions: 
     if (c.tool === 'Bash') {
       const ok = c.exitCode === 0
       // 本文 = コマンド全文 → 空行 → 出力全文。先頭から表示し、スクロールで全部読める
-      const commandLines = (c.command ?? c.path).split('\n').map(l => `$ ${l}`)
+      const commandLines = (c.command ?? c.path).split('\n')
       const outputLines = (c.output ?? '').split('\n')
-      const all = [...commandLines, ...(outputLines.length && outputLines[0] !== '' ? ['', ...outputLines] : [])]
+      const all = bashLines(c)
       const start = Math.max(0, Math.min(f.codeScroll, Math.max(0, all.length - bodyRows)))
       const out = all.slice(start, start + bodyRows)
       const above = start
