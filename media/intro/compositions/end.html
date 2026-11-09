@@ -1,0 +1,233 @@
+<template>
+<style>
+#root { position:absolute; inset:0; background:#e9e6df; overflow:hidden;
+  --ink:#1b1b1f; --tbg:#1e1e2e; --line:#45475a; --tx:#cdd6f4; --dim:#7f849c;
+  --now:#d97757; --ok:#a6e3a1; --bad:#f38ba8; --warn:#f9e2af;
+  --app:#5b9cf6; --lib:#2cb8a6; --db:#a97cf0; --oth:#8b93a1; --sel:#313244;
+  font-family:"Noto Sans JP", sans-serif; color:var(--ink); }
+#root * { box-sizing:border-box; margin:0; padding:0; }
+.mono { font-family:"JetBrains Mono","Noto Sans JP",monospace; }
+.stage { position:absolute; inset:0; }
+/* window */
+.win { position:absolute; left:120px; top:72px; width:1680px; height:760px; border-radius:14px; background:var(--tbg);
+  box-shadow:0 24px 60px rgba(0,0,0,.28), 0 2px 0 rgba(255,255,255,.35) inset; overflow:hidden; }
+.titlebar { height:40px; background:#11111b; display:flex; align-items:center; padding:0 16px; gap:8px; position:relative; }
+.titlebar .d { width:12px; height:12px; border-radius:50%; }
+.titlebar .d.r{background:#f38ba8}.titlebar .d.y{background:#f9e2af}.titlebar .d.g{background:#a6e3a1}
+.titlebar .ttl { position:absolute; left:0; right:0; text-align:center; color:#a6adc8; font:500 18px/40px "JetBrains Mono","Noto Sans JP",monospace; }
+.body { position:absolute; top:40px; left:0; right:0; bottom:0; font:400 20px/30px "JetBrains Mono","Noto Sans JP",monospace; color:var(--tx); }
+/* two columns: transcript (left) / cockpit (right) */
+.tx { position:absolute; left:0; top:0; bottom:0; width:924px; padding:0 18px; overflow:hidden; }
+.tx.full { width:1680px; }
+.vr { position:absolute; left:924px; top:0; bottom:0; width:1px; background:var(--line); transform-origin:50% 0; }
+.cp { position:absolute; left:925px; top:0; bottom:0; right:0; padding:0 18px; overflow:hidden; }
+.ln { white-space:pre; height:30px; overflow:hidden; position:relative; }
+.ln.wrap { white-space:pre-wrap; height:auto; }
+/* colours */
+.now{color:var(--now)} .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+.app{color:var(--app)} .lib{color:var(--lib)} .db{color:var(--db)} .oth{color:var(--oth)}
+.dim{color:var(--dim)} .b{font-weight:700} .plus{color:var(--ok)} .minus{color:var(--bad)}
+.hl { position:absolute; left:-18px; right:-18px; top:0; height:30px; background:var(--sel); opacity:0; }
+.cur { display:inline-block; width:11px; height:22px; background:var(--tx); vertical-align:-4px; margin-left:1px; }
+.ch { opacity:0; }
+/* toast (Claude Code) */
+.toast { position:absolute; left:18px; width:888px; bottom:100px; padding:10px 16px; border:1px solid var(--line); border-radius:8px; background:#181825;
+  color:var(--tx); font:400 20px/28px "JetBrains Mono","Noto Sans JP",monospace; white-space:pre-wrap; opacity:0; }
+/* cursor (pointer) */
+.ptr { position:absolute; width:56px; height:72px; opacity:0; z-index:5; filter:drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
+/* caption band */
+.cap { position:absolute; left:120px; top:884px; width:1300px; font:700 46px/64px "Noto Sans JP",sans-serif; color:var(--ink); letter-spacing:.01em; }
+.cap span { display:inline-block; opacity:0; }
+.cap .ac { color:#c2410c; }
+.sub { position:absolute; left:120px; top:960px; width:1300px; font:500 26px/38px "Noto Sans JP",sans-serif; color:#4a4a52; }
+.sub span { display:inline-block; opacity:0; }
+.keys { position:absolute; right:120px; top:892px; display:flex; gap:12px; align-items:center; opacity:0; }
+.keys kbd { font:600 34px/56px "JetBrains Mono",monospace; background:var(--tbg); color:var(--tx); border-radius:9px; padding:0 20px; display:inline-block; }
+.keys .plus { font:600 30px/56px "JetBrains Mono",monospace; color:#7a7a84; }
+/* labels on the pane */
+.lab { position:absolute; text-align:right; font:700 20px/28px "Noto Sans JP",sans-serif; color:#1e1e2e; background:#f5f1e8; padding:1px 12px; border-radius:6px; white-space:nowrap; opacity:0; z-index:4; }
+.lab.ac { background:var(--now); color:#1e1e2e; }
+/* stacked variants of one row (pick / swapTo toggle them) */
+.ln .v { position:absolute; left:0; top:0; white-space:pre; }
+.ln .v.off { opacity:0; }
+.tri2 { position:absolute; left:0; top:0; }
+.rel { position:relative; display:inline-block; }
+.txs { position:absolute; left:18px; right:18px; top:0; height:630px; overflow:hidden; }
+.txin { position:absolute; left:0; right:0; top:0; }
+.txb { position:absolute; left:18px; right:18px; bottom:0; height:90px; }
+.lab .n { display:inline-block; width:26px; height:26px; border-radius:50%; background:#1e1e2e; color:#f5f1e8; font:700 16px/26px "JetBrains Mono"; text-align:center; margin-right:8px; vertical-align:2px; }
+.lab.ac .n { background:#1e1e2e; color:var(--now); }
+
+.body { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+/* VS Code(Dark Modern)の窓。o で開いた時だけ前に出る */
+.vsc { position:absolute; left:330px; top:120px; width:1480px; height:700px; border-radius:10px; overflow:hidden; background:#1f1f1f;
+  box-shadow:0 30px 80px rgba(0,0,0,.45), 0 0 0 1px #2b2b2b; font:400 13px/18px "Inter","Noto Sans JP",sans-serif; color:#cccccc; opacity:0; z-index:6; }
+.vsc-title { position:absolute; left:0; right:0; top:0; height:35px; background:#181818; border-bottom:1px solid #2b2b2b; display:flex; align-items:center; }
+.vsc-title .menu { display:flex; gap:14px; padding-left:14px; color:#cccccc; font-size:13px; }
+.vsc-title .ttl { position:absolute; left:0; right:0; text-align:center; color:#cccccc; font-size:12px; line-height:35px; }
+.vsc-title .wc { position:absolute; right:14px; top:0; display:flex; gap:22px; color:#cccccc; font-size:14px; line-height:35px; }
+.vsc-act { position:absolute; left:0; top:35px; bottom:22px; width:48px; background:#181818; border-right:1px solid #2b2b2b; }
+.vsc-act svg { display:block; width:24px; height:24px; margin:12px auto 14px; stroke:#868686; fill:none; stroke-width:1.5; }
+.vsc-act svg.on { stroke:#d7d7d7; }
+.vsc-act .bar { position:absolute; left:0; top:35px; width:2px; height:48px; background:#0078d4; }
+.vsc-side { position:absolute; left:48px; top:35px; bottom:22px; width:240px; background:#181818; border-right:1px solid #2b2b2b; }
+.vsc-side .h { padding:0 20px; font-size:11px; line-height:35px; letter-spacing:.04em; color:#cccccc; }
+.vsc-side .h2 { padding:0 10px; font-weight:700; font-size:11px; line-height:22px; color:#cccccc; }
+.vsc-side .row { height:22px; line-height:22px; padding-left:var(--ind); color:#cccccc; font-size:13px; white-space:nowrap; }
+.vsc-side .row.dir::before { content:"›"; display:inline-block; width:16px; color:#cccccc; }
+.vsc-side .row.dir.open::before { content:"⌄"; }
+.vsc-side .row.file::before { content:""; display:inline-block; width:16px; }
+.vsc-side .row.sel { background:#04395e; outline:1px solid #0078d4; outline-offset:-1px; }
+.vsc-side .row .ts { color:#519aba; font-weight:700; font-size:10px; margin-right:6px; }
+.vsc-side .row .js { color:#cbcb41; font-weight:700; font-size:10px; margin-right:6px; }
+.vsc-side .row .json { color:#cbcb41; font-weight:700; font-size:10px; margin-right:6px; }
+.vsc-ed { position:absolute; left:289px; right:0; top:35px; bottom:22px; background:#1f1f1f; }
+.vsc-tabs { height:35px; background:#181818; border-bottom:1px solid #2b2b2b; display:flex; }
+.vsc-tab { height:35px; padding:0 14px; display:flex; align-items:center; gap:8px; background:#1f1f1f; border-right:1px solid #2b2b2b; border-top:1px solid #0078d4; color:#ffffff; font-size:13px; }
+.vsc-tab .ts { color:#519aba; font-weight:700; font-size:10px; }
+.vsc-tab .x { color:#cccccc; margin-left:8px; }
+.vsc-crumb { height:22px; line-height:22px; padding-left:16px; color:#a9a9a9; font-size:12px; white-space:nowrap; }
+.vsc-code { position:absolute; left:0; right:0; top:57px; bottom:0; font:400 16px/24px "JetBrains Mono",monospace; color:#d4d4d4; font-variant-ligatures:none; }
+.vsc-ln { height:24px; display:flex; white-space:pre; position:relative; }
+.vsc-ln .gut { width:4px; margin-left:6px; }
+.vsc-ln .gut.add { background:#487e02; }
+.vsc-ln .no { width:56px; text-align:right; padding-right:22px; color:#6e7681; }
+.vsc-ln.curline .no { color:#cccccc; }
+.vsc-ln.curline::after { content:""; position:absolute; left:66px; right:0; top:0; bottom:0; border-top:1px solid #282828; border-bottom:1px solid #282828; pointer-events:none; }
+.vsc-ln .caret { display:inline-block; width:2px; height:22px; background:#aeafad; vertical-align:-4px; margin-left:-1px; }
+.vsc-status { position:absolute; left:0; right:0; bottom:0; height:22px; background:#181818; border-top:1px solid #2b2b2b; display:flex; align-items:center; font-size:12px; color:#cccccc; }
+.vsc-status .remote { height:22px; line-height:22px; padding:0 10px; background:#0078d4; color:#fff; display:flex; align-items:center; gap:6px; }
+.vsc-status .remote svg { width:14px; height:14px; stroke:#fff; fill:none; stroke-width:1.6; }
+.vsc-status .it { padding:0 8px; display:flex; align-items:center; gap:4px; }
+.vsc-status .it svg { width:14px; height:14px; stroke:#cccccc; fill:none; stroke-width:1.5; }
+.vsc-status .right { margin-left:auto; display:flex; }
+/* 解剖図:左の列の上に、ペインの 1 行を拡大して部位にラベル */
+.anat { position:absolute; left:138px; width:888px; opacity:0; z-index:4; }
+.anat .al { position:relative; height:30px; font:400 20px/30px "JetBrains Mono","Noto Sans JP",monospace; color:var(--tx); white-space:pre; }
+.anat .al span { position:relative; }
+.anat .tick { position:absolute; width:1px; background:#f5f1e8; opacity:.8; }
+.anat .lb { position:absolute; font:700 15px/22px "Noto Sans JP",sans-serif; color:#1b1b1f; background:#f5f1e8; padding:0 8px; border-radius:5px; white-space:nowrap; }
+.anat .lb.ac { background:var(--now); }
+.anat .note { position:absolute; left:0; font:500 17px/26px "Noto Sans JP",sans-serif; color:#cdd6f4; white-space:pre; }
+.kinds { position:absolute; right:868px; display:flex; flex-direction:column; gap:6px; opacity:0; z-index:4; }
+.kinds .k { font:700 17px/26px "JetBrains Mono","Noto Sans JP",monospace; color:#cdd6f4; background:#313244; padding:0 10px; border-radius:5px; text-align:right; }
+.kinds .k.on { background:var(--now); color:#1e1e2e; }
+.legend { position:absolute; left:138px; width:888px; font:500 18px/30px "JetBrains Mono","Noto Sans JP",monospace; color:#cdd6f4; white-space:pre; opacity:0; z-index:4; }
+
+.hg { display:inline-block; width:12px; height:20px; vertical-align:-3px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; }
+
+</style>
+<div id="root" data-composition-id="end" data-width="1920" data-height="1080">
+<div id="en-stage" class="stage clip" data-start="0" data-duration="9.56" data-track-index="0">
+<div class="win" id="en-win"><div class="titlebar"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="ttl">leads-api — claude</span></div><div class="body" id="en-body"><div class="tx" id="en-tx" data-layout-allow-overlap><div class="txs"><div class="txin" id="en-txin" style="transform:translateY(-240px)"><div class="ln" data-layout-allow-occlusion id="en-p0"><span data-layout-allow-occlusion class="dim">></span> leads API の入力検証を zod にして。</div>
+<div class="ln" data-layout-allow-occlusion id="en-p1">  型と一体で。</div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="en-i0"><span data-layout-allow-occlusion class="now" data-layout-allow-occlusion>●</span> zod で入力検証を型と一体にする。</div>
+<div class="ln" data-layout-allow-occlusion id="en-i1">  スキーマを lib/validation.ts に置き、</div>
+<div class="ln" data-layout-allow-occlusion id="en-i2">  route から使う。</div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="en-b0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Bash</span>(npm install zod)</div>
+<div class="ln" data-layout-allow-occlusion id="en-b1">  <span data-layout-allow-occlusion class="dim">⎿  added 1 package in 2s</span></div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="en-w0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Write</span>(lib/validation.ts)</div>
+<div class="ln" data-layout-allow-occlusion id="en-w1">  <span data-layout-allow-occlusion class="dim">⎿  Wrote 13 lines to lib/validation.ts</span></div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="en-u0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Update</span>(app/api/leads/route.ts)</div>
+<div class="ln" data-layout-allow-occlusion id="en-u1">  <span data-layout-allow-occlusion class="dim">⎿  Updated app/api/leads/route.ts with</span></div>
+<div class="ln" data-layout-allow-occlusion id="en-u2">  <span data-layout-allow-occlusion class="dim">   2 additions and 5 removals</span></div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="en-v0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Update</span>(app/api/leads/route.ts)</div>
+<div class="ln" data-layout-allow-occlusion id="en-v1">  <span data-layout-allow-occlusion class="dim">⎿  Updated app/api/leads/route.ts with</span></div>
+<div class="ln" data-layout-allow-occlusion id="en-v2">  <span data-layout-allow-occlusion class="dim">   5 additions and 1 removal</span></div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="en-ag0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Agent</span>(size の検証テストを足す)</div>
+<div class="ln" data-layout-allow-occlusion id="en-ag1">  <span data-layout-allow-occlusion class="dim">⎿  Done (1 tool use · 12s)</span></div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="en-rv0"><span data-layout-allow-occlusion class="dim">></span> cockpit: 人が tests/route.test.ts への</div>
+<div class="ln" data-layout-allow-occlusion id="en-rv1">  直前の変更をリバートした。意図的な判断。</div>
+<div class="ln" data-layout-allow-occlusion id="en-rv2">  別の方法が要るか人に聞く。</div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="en-ak"><span data-layout-allow-occlusion class="now" data-layout-allow-occlusion>●</span> 了解。テストの追加は保留にします。</div></div></div><div class="txb"><div class="ln"><span class="dim" id="en-hr">──────────────────────────────────────────────────────────────────────────</span></div><div class="ln"><span class="dim">></span> <span class="cur" id="en-cur"></span></div><div class="ln"><span class="dim">  ? for shortcuts</span></div></div></div><div id="en-card" style="position:absolute;left:0;top:0;width:924px;bottom:0;opacity:0">
+  <div id="en-mark" class="mono" style="position:absolute;left:40px;top:150px;font:700 84px/100px 'JetBrains Mono';color:#cdd6f4"><span class="now">▶</span> cockpit</div>
+  <div id="en-line" style="position:absolute;left:44px;top:270px;font:500 28px/44px 'Noto Sans JP';color:#a6adc8">AI に書かせても、自分のコードのまま。</div>
+  <div id="en-big" style="position:absolute;left:44px;top:330px;font:700 34px/50px 'Noto Sans JP';color:#cdd6f4"><span style="display:block">計器は 4 つ。</span><span style="display:block">操作は 2 つ。</span><span style="display:block">設定は無い。</span></div>
+  <div class="mono" style="position:absolute;left:44px;top:520px;font:400 22px/32px 'JetBrains Mono';color:#cdd6f4;white-space:pre"><span class="dim">></span> <span id="en-cmd" data-type="/plugin install cockpit&#10;    --marketplace RintaroYamaoka/claude-cockpit"></span></div>
+</div><div class="vr"></div><div class="cp" id="en-cp" data-layout-allow-overlap><div class="ln" id="en-r0"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="oth b">tests/route.test.ts</span><span class="dim">  exports —</span></div>
+<div class="ln" id="en-r1"><span class="dim">  imports     </span><span class="app">app/api</span><span>  </span><span class="dim">vitest</span><span>  </span></div>
+<div class="ln" id="en-r2"><span class="dim">  dependents  —(エントリポイントか未参照)</span></div>
+<div class="ln" id="en-r3"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="en-r4"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="dim">zod で入力検証を型と一体にする</span></div>
+<div class="ln" id="en-r5"><span class="oth">▎ tests/route.test.…</span><span class="warn"> リバート済み</span><span class="dim">  ↳ サブエージェント</span></div>
+<div class="ln" id="en-r6"><span class="v" id="en-r6-t"> <span class="dim">@@ -11,4 +11,7 @@</span></span></div>
+<div class="ln" id="en-r7"><span class="v" id="en-r7-t">    it('stores a valid lead', async () =&gt; {</span></div>
+<div class="ln" id="en-r8"><span class="v" id="en-r8-t">      const res = await post({ email: 'a@b.co', company: …</span></div>
+<div class="ln" id="en-r9"><span class="v" id="en-r9-t">      expect(res.status).toBe(201)</span></div>
+<div class="ln" id="en-r10"><span class="v" id="en-r10-t">    })</span></div>
+<div class="ln" id="en-r11"><span class="v" id="en-r11-t"> <span class="plus">+  it('rejects a non-numeric size', async () =&gt; {</span></span></div>
+<div class="ln" id="en-r12"><span class="v" id="en-r12-t"> <span class="plus">+    expect((await post({ email: 'a@b.co', size: 'big' }…</span></span></div>
+<div class="ln" id="en-r13"><span class="v" id="en-r13-t"> <span class="plus">+  })</span></span></div>
+<div class="ln" id="en-r14"><span class="v" id="en-r14-t">  })</span></div>
+<div class="ln" id="en-r15"><span class="v" id="en-r15-t"></span></div>
+<div class="ln" id="en-r16"><span class="dim">  └ </span><span class="ok">+3</span> <span class="bad">-0</span><span class="dim">  </span><span class="ok">✓ 型チェック</span><span class="dim"> 2.3s</span><span>  </span><span class="ok">✓ テスト</span><span class="dim"> 1.0s</span><span>  </span></div>
+<div class="ln" id="en-r17"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ↑0 ↓2┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="en-r18"><span class="now">▸ </span><span class="">10:44 Edit  ↳ </span><span class="oth b dim">tests/route.test.ts</span><span class="dim"> +3 -0</span><span class="warn"> ↶</span></div>
+<div class="ln" id="en-r19"><span class="ok">✓ </span><span class="dim">10:43 Edit  </span><span class="app">app/api/leads/route.ts</span><span class="dim"> · POST</span><span class="dim"> +5 -1</span></div>
+<div class="ln" id="en-r20"><span class="bad">✗ </span><span class="dim">10:42 Edit  </span><span class="app">app/api/leads/route.ts</span><span class="dim"> · POST</span><span class="dim"> +2 -5</span></div>
+<div class="ln" id="en-r21"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="en-r22"><span class="">o: 開く</span> <span class="">r: リバート</span> j: ↓ k: ↑</div></div></div></div>
+<p class="cap" id="en-c1"><span class="ac">/plugin install cockpit</span></p>
+<p class="sub" id="en-s1"><span>github.com/RintaroYamaoka/claude-cockpit · MIT · ♪ Drift – Minimal / PodcastAC (CC BY)</span></p>
+</div>
+</div>
+<script>
+// shared helpers (inlined into every scene)
+function words(sel, at, tl, step){ step = step||0.07;
+  tl.fromTo(sel+" span",{opacity:0,filter:"blur(8px)"},{opacity:1,filter:"blur(0px)",duration:0.2,ease:"power2.out",stagger:step},at); }
+function unwords(sel, at, tl){ tl.to(sel+" span",{opacity:0,filter:"blur(6px)",duration:0.16,ease:"power3.in",stagger:0.03},at); }
+function typeIn(sel, at, tl, cps){ cps = cps||22; const el=document.querySelector(sel); if(!el) return at;
+  const txt=el.getAttribute("data-type")||""; el.innerHTML=""; const frag=document.createDocumentFragment();
+  for(const c of txt){ const s=document.createElement("span"); s.className="ch"; s.textContent=c; frag.appendChild(s);} el.appendChild(frag);
+  const dur=txt.length/cps; tl.fromTo(sel+" .ch",{opacity:0},{opacity:1,duration:0.01,stagger:dur/Math.max(1,txt.length)},at); return at+dur; }
+function show(sel, at, tl, dur){ tl.fromTo(sel,{opacity:0},{opacity:1,duration:dur||0.25,ease:"power2.out"},at); }
+function hide(sel, at, tl, dur){ tl.to(sel,{opacity:0,duration:dur||0.2,ease:"power3.in"},at); }
+function rise(sel, at, tl, dy){ tl.fromTo(sel,{opacity:0,y:dy||18},{opacity:1,y:0,duration:0.5,ease:"expo.out"},at); }
+function press(sel, at, tl){ tl.fromTo(sel,{scale:1},{scale:0.9,duration:0.08,ease:"power2.in",immediateRender:false},at)
+  .to(sel,{scale:1,duration:0.22,ease:"back.out(2)"},at+0.08)
+  .fromTo(sel,{backgroundColor:"#fab387",color:"#1e1e2e"},{backgroundColor:"#1e1e2e",color:"#cdd6f4",duration:0.5,ease:"power2.out",immediateRender:false},at+0.08); }
+// flip: a later change on a visible element (no immediateRender)
+function flip(sel, at, tl, from, to, dur, ease){ to.duration=dur||0.35; to.ease=ease||"power2.out"; to.immediateRender=false; tl.fromTo(sel,from,to,at); }
+function keys(sel, at, tl){ tl.fromTo(sel,{opacity:0,y:10},{opacity:1,y:0,duration:0.3,ease:"power2.out"},at); }
+function unkeys(sel, at, tl){ tl.to(sel,{opacity:0,duration:0.2,ease:"power3.in"},at); }
+function pop(sel, at, tl){ tl.fromTo(sel,{scale:0,opacity:0},{scale:1,opacity:1,duration:0.35,ease:"back.out(1.6)"},at); }
+function swapIn(sel, at, tl){ tl.fromTo(sel,{opacity:0,filter:"blur(8px)"},{opacity:1,filter:"blur(0px)",duration:0.22,ease:"power2.out"},at); }
+function swapOut(sel, at, tl){ tl.to(sel,{opacity:0,filter:"blur(8px)",duration:0.18,ease:"power3.in"},at); }
+function blink(sel, at, until, tl){ for(let t=at;t<until;t+=1.0){ tl.set(sel,{opacity:1},t); tl.set(sel,{opacity:0},Math.min(t+0.5,until)); } }
+// cockpit: variants of one row. pick = hard switch, swapTo = blur swap (0.2 s)
+function pick(sel, at, tl){ const el=document.querySelector(sel); if(!el) return; const sib=el.parentElement.querySelectorAll(".v");
+  tl.set(sib,{opacity:0},at); tl.set(sel,{opacity:1},at); }
+function swapTo(sel, at, tl){ const el=document.querySelector(sel); if(!el) return; const sib=[...el.parentElement.querySelectorAll(".v")].filter(x=>x!==el);
+  tl.to(sib,{opacity:0,filter:"blur(6px)",duration:0.16,ease:"power3.in"},at);
+  tl.fromTo(sel,{opacity:0,filter:"blur(6px)"},{opacity:1,filter:"blur(0px)",duration:0.22,ease:"power2.out"},at+0.1); }
+// dim everything in a container except the given rows
+function focusRows(container, keep, at, tl){ const rows=[...document.querySelectorAll(container+" > .ln")].filter(r=>!keep.includes("#"+r.id));
+  tl.to(rows,{opacity:0.22,duration:0.4,ease:"power2.inOut"},at); }
+function unfocusRows(container, at, tl){ tl.to(container+" > .ln",{opacity:1,duration:0.4,ease:"power2.inOut"},at); }
+function label(sel, at, tl){ tl.fromTo(sel,{opacity:0,x:10},{opacity:1,x:0,duration:0.35,ease:"expo.out"},at); }
+function unlabel(sel, at, tl){ tl.to(sel,{opacity:0,duration:0.2,ease:"power3.in"},at); }
+function scrollTo(sel, at, tl, y){ tl.to(sel,{y:y,duration:0.3,ease:"power2.out"},at); }
+
+(function(){
+const tl = gsap.timeline({ paused: true });
+blink("#en-cur",0.2,0.6,tl);
+tl.to("#en-tx",{opacity:0,duration:0.3,ease:"power3.in"},0.3);
+tl.fromTo("#en-card",{opacity:0},{opacity:1,duration:0.2},0.6);
+tl.fromTo("#en-mark",{opacity:0,x:-20},{opacity:1,x:0,duration:0.6,ease:"expo.out"},0.6);
+tl.fromTo("#en-line",{opacity:0},{opacity:1,duration:0.4,ease:"power2.out"},1.205);
+tl.fromTo("#en-big span",{opacity:0,filter:"blur(8px)"},{opacity:1,filter:"blur(0px)",duration:0.25,ease:"power2.out",stagger:0.15},1.568);
+typeIn("#en-cmd",3.02,tl,28);
+tl.set("#en-cp .tri",{opacity:0},0.01);
+words("#en-c1",3.262,tl,0.1); words("#en-s1",3.989,tl,0.05);
+window.__timelines["end"] = tl;
+})();
+</script>
+</template>

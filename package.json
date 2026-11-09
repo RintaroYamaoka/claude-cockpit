@@ -1,9 +1,10 @@
 {
-  "name": "claude-coding-driver",
+  "name": "claude-cockpit",
   "private": true,
-  "description": "drive — AI 駆動開発を自分で運転する Claude Code の mod。npm の依存は無く、テストは claude plugin test で回す",
+  "description": "cockpit — AI に書かせても、自分で書いている感覚のままでいる。Claude Code の mod。npm の依存は無く、テストは claude plugin test で回す",
   "scripts": {
-    "test": "claude plugin test ./drive",
-    "validate": "claude plugin validate ./drive"
+    "test": "claude plugin test ./cockpit",
+    "validate": "claude plugin validate ./cockpit",
+    "typecheck": "cd cockpit && npx -y -p typescript@5 tsc --noEmit -p ."
   }
 }

@@ -1,0 +1,74 @@
+<div id="bd-stage" class="stage clip" data-start="0" data-duration="41.21" data-track-index="0">
+<div class="win" id="bd-win"><div class="titlebar"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="ttl">leads-api — claude</span></div><div class="body" id="bd-body"><div class="tx" id="bd-tx" data-layout-allow-overlap><div class="txs"><div class="txin" id="bd-txin" style="transform:translateY(0px)"><div class="ln" data-layout-allow-occlusion id="bd-p0"><span data-layout-allow-occlusion class="dim">></span> leads API の入力検証を zod にして。</div>
+<div class="ln" data-layout-allow-occlusion id="bd-p1">  型と一体で。</div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="bd-i0"><span data-layout-allow-occlusion class="now" data-layout-allow-occlusion>●</span> zod で入力検証を型と一体にする。</div>
+<div class="ln" data-layout-allow-occlusion id="bd-i1">  スキーマを lib/validation.ts に置き、</div>
+<div class="ln" data-layout-allow-occlusion id="bd-i2">  route から使う。</div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="bd-b0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Bash</span>(npm install zod)</div>
+<div class="ln" data-layout-allow-occlusion id="bd-b1">  <span data-layout-allow-occlusion class="dim">⎿  added 1 package in 2s</span></div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="bd-w0"><span data-layout-allow-occlusion class="ok" data-layout-allow-occlusion>●</span> <span data-layout-allow-occlusion class="b">Write</span>(lib/validation.ts)</div>
+<div class="ln" data-layout-allow-occlusion id="bd-w1">  <span data-layout-allow-occlusion class="dim">⎿  Wrote 13 lines to lib/validation.ts</span></div>
+<div class="ln" data-layout-allow-occlusion> </div>
+<div class="ln" data-layout-allow-occlusion id="bd-th"><span data-layout-allow-occlusion class="now" data-layout-allow-occlusion>✻</span> Thinking… <span data-layout-allow-occlusion class="dim">(12s · ↓ 2.1k tokens)</span></div></div></div><div class="txb"><div class="ln"><span class="dim" id="bd-hr">──────────────────────────────────────────────────────────────────────────</span></div><div class="ln"><span class="dim">></span> <span class="cur" id="bd-cur"></span></div><div class="ln"><span class="dim">  ? for shortcuts</span></div></div></div><div class="vr"></div><div class="cp" id="bd-cp" data-layout-allow-overlap><div class="ln" id="bd-r0"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="lib b">lib/validation.ts</span><span class="dim">  exports LeadSchema, Lead, isEmail</span></div>
+<div class="ln" id="bd-r1"><span class="dim">  imports     </span><span class="dim">zod</span><span class="ok pm">+</span><span>  </span></div>
+<div class="ln" id="bd-r2"><span class="dim">  dependents  </span><span class="b">2</span><span class="dim">  </span><span class="app">app/api  </span><span class="oth">tests  </span></div>
+<div class="ln" id="bd-r3"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="bd-r4"><span class="now rel"><span class="tri">▶</span><span class="tri2">▷</span></span> <span class="dim">zod で入力検証を型と一体にする</span></div>
+<div class="ln" id="bd-r5"><span class="lib">▎ lib/validation.ts</span><span class="dim"> · LeadSchema</span><span class="dim"> 10:40</span><span class="dim">  ↑0 ↓4</span></div>
+<div class="ln" id="bd-r6"><span class="v" id="bd-r6-val"> <span class="dim">@@ -1,3 +1,13 @@</span></span></div>
+<div class="ln" id="bd-r7"><span class="v" id="bd-r7-val"> <span class="plus">+import { z } from 'zod'</span></span></div>
+<div class="ln" id="bd-r8"><span class="v" id="bd-r8-val"> <span class="plus">+</span></span></div>
+<div class="ln" id="bd-r9"><span class="v" id="bd-r9-val"> <span class="plus">+export const LeadSchema = z.object({</span></span></div>
+<div class="ln" id="bd-r10"><span class="v" id="bd-r10-val"> <span class="plus">+  email: z.string().email(),</span></span></div>
+<div class="ln" id="bd-r11"><span class="v" id="bd-r11-val"> <span class="plus">+  company: z.string().min(1),</span></span></div>
+<div class="ln" id="bd-r12"><span class="v" id="bd-r12-val"> <span class="plus">+  size: z.number().int().positive(),</span></span></div>
+<div class="ln" id="bd-r13"><span class="v" id="bd-r13-val"> <span class="plus">+})</span></span></div>
+<div class="ln" id="bd-r14"><span class="v" id="bd-r14-val"> <span class="plus">+</span></span></div>
+<div class="ln" id="bd-r15"><span class="v" id="bd-r15-val"> <span class="plus">+export type Lead = z.infer&lt;typeof LeadSchema&gt;</span></span></div>
+<div class="ln" id="bd-r16"><span class="dim">  └ </span><span class="ok">+11</span> <span class="bad">-1</span><span class="dim">  </span><span class="ok">✓ 型チェック</span><span class="dim"> 2.4s</span><span>  </span><span class="ok">✓ テスト</span><span class="dim"> 1.0s</span><span>  </span></div>
+<div class="ln" id="bd-r17"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="bd-r18"><span class="now">▸ </span><span class="">10:40 Write </span><span class="lib b">lib/validation.ts</span><span class=""> · LeadSchema</span><span class="dim"> +11 -1</span></div>
+<div class="ln" id="bd-r19"><span class="ok">✓ </span><span class="dim">10:39 Bash  $ </span><span class="">npm install zod</span></div>
+<div class="ln" id="bd-r20"> </div>
+<div class="ln" id="bd-r21"><span class="dim">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</span></div>
+<div class="ln" id="bd-r22"><span class="">o: 開く</span> <span class="">r: リバート</span> j: ↓ k: ↑</div></div></div></div>
+<div class="anat" id="bd-a1" data-layout-allow-overlap data-layout-allow-occlusion style="top:232px;height:124px"><div class="al" style="position:absolute;left:0;top:0px"><span class="now">▶ </span><span class="dim">zod で入力検証を型と一体にする</span></div><div class="tick" style="left:30px;top:30px;height:15px"></div><div class="lb" style="left:24px;top:34px">モデルが今書いている文章の 1 行目 = 何のために</div></div><div class="anat" id="bd-a2" data-layout-allow-overlap data-layout-allow-occlusion style="top:356px;height:124px"><div class="al" style="position:absolute;left:0;top:0px"><span class="lib">▎ </span><span class="lib">lib/validation.ts</span><span class="dim"> · LeadSchema</span><span class="dim"> 10:40</span><span class="dim">  ↑0 ↓4</span></div><div class="tick" style="left:30px;top:30px;height:15px"></div><div class="tick" style="left:234px;top:30px;height:15px"></div><div class="tick" style="left:390px;top:30px;height:43px"></div><div class="tick" style="left:462px;top:30px;height:15px"></div><div class="lb" style="left:24px;top:34px">ファイル(層の色)</div><div class="lb" style="left:228px;top:34px">変更位置に最も近い宣言名</div><div class="lb" style="left:384px;top:62px">時刻</div><div class="lb" style="left:456px;top:34px">見えていない行数</div></div><div class="anat" id="bd-a3" data-layout-allow-overlap data-layout-allow-occlusion style="top:480px;height:184px"><div class="al" style="position:absolute;left:0;top:0px"><span class="dim">  └ </span><span class="ok">+11</span><span class="dim"> </span><span class="bad">-1</span><span class="ok">  ✓ 型チェック</span><span class="dim"> 2.4s</span><span class="ok">  ✓ テスト</span><span class="dim"> 1.0s</span></div><div class="tick" style="left:54px;top:30px;height:15px"></div><div class="tick" style="left:102px;top:30px;height:43px"></div><div class="tick" style="left:126px;top:30px;height:71px"></div><div class="tick" style="left:294px;top:30px;height:15px"></div><div class="tick" style="left:354px;top:30px;height:43px"></div><div class="lb" style="left:48px;top:34px">増えた行</div><div class="lb" style="left:96px;top:62px">減った行</div><div class="lb" style="left:120px;top:90px">編集直後に裏で回したチェック</div><div class="lb" style="left:288px;top:34px">所要時間</div><div class="lb" style="left:348px;top:62px">関連テスト</div><div class="note" style="top:104px">回せるものが無いプロジェクトでは  – チェック  とだけ出る</div></div>
+<p class="cap" id="bd-c1"><span>④ 意図 ― </span><span class="ac">何のために</span><span>、が常に見える。</span></p>
+<p class="sub" id="bd-s1"><span>Row 4, the intent: the first line of what the model is writing right now. Always visible.</span></p>
+<p class="cap" id="bd-c2"><span>⑤ 見出し ― </span><span>ファイル・</span><span class="ac">宣言名</span><span>・時刻。</span></p>
+<p class="sub" id="bd-s2"><span>Row 5, the heading: file, nearest declaration, time. At the right, how many lines are out of view.</span></p>
+<p class="cap" id="bd-c3"><span>⑥ 本文 ― </span><span class="ac">本当の差分</span><span>。変わった行と前後 2 行。</span></p>
+<p class="sub" id="bd-s3"><span>The body: the real diff. Write or Edit, a line diff of before and after, with two lines of context.</span></p>
+<p class="cap" id="bd-c4"><span>⑦ 結果 ― </span><span>増減と、</span><span class="ac">直後のチェック</span><span>。</span></p>
+<p class="sub" id="bd-s4"><span>The result: lines added and removed, then the checks run right after the edit: typecheck, related tests, lint, with their time.</span></p>
+</div>
+<!--SCRIPT-->
+blink("#bd-cur",0.2,41.113,tl);
+blink("#bd-cp .tri",0.2,41.113,tl);
+tl.to("#bd-tx",{opacity:0.12,duration:0.4,ease:"power2.inOut"},0.3);
+focusRows("#bd-cp",["#bd-r4"],0.3,tl);
+tl.fromTo("#bd-a1",{opacity:0,x:-16},{opacity:1,x:0,duration:0.5,ease:"expo.out"},0.553);
+tl.fromTo("#bd-a1 .lb, #bd-a1 .tick",{opacity:0},{opacity:1,duration:0.3},1.624);
+words("#bd-c1",0.4,tl,0.1); words("#bd-s1",1.012,tl,0.05);
+unwords("#bd-c1",7.435,tl); unwords("#bd-s1",7.435,tl);
+words("#bd-c2",7.835,tl,0.1); words("#bd-s2",8.388,tl,0.05);
+focusRows("#bd-cp",["#bd-r4","#bd-r5"],7.835,tl);
+tl.fromTo("#bd-a2",{opacity:0,x:-16},{opacity:1,x:0,duration:0.5,ease:"expo.out"},8.112);
+tl.fromTo("#bd-a2 .lb, #bd-a2 .tick",{opacity:0},{opacity:1,duration:0.3,stagger:0.4},8.941);
+unwords("#bd-c2",14.743,tl); unwords("#bd-s2",14.743,tl);
+words("#bd-c3",15.143,tl,0.1); words("#bd-s3",15.946,tl,0.05);
+focusRows("#bd-cp",["#bd-r4","#bd-r5","#bd-r6","#bd-r7","#bd-r8","#bd-r9","#bd-r10","#bd-r11","#bd-r12","#bd-r13","#bd-r14","#bd-r15"],15.143,tl);
+tl.to(["#bd-a1","#bd-a2"],{opacity:0.35,duration:0.3},15.143);
+unwords("#bd-c3",26.786,tl); unwords("#bd-s3",26.786,tl);
+words("#bd-c4",27.186,tl,0.1); words("#bd-s4",27.82,tl,0.05);
+unfocusRows("#bd-cp",27.186,tl);
+tl.to(["#bd-a1","#bd-a2"],{opacity:0,duration:0.3},27.186);
+tl.fromTo("#bd-a3",{opacity:0,x:-16},{opacity:1,x:0,duration:0.5,ease:"expo.out"},27.503);
+tl.fromTo("#bd-a3 .lb, #bd-a3 .tick",{opacity:0},{opacity:1,duration:0.3,stagger:0.45},28.454);
+tl.fromTo("#bd-a3 .note",{opacity:0},{opacity:1,duration:0.3},35.426);
+tl.to("#bd-a3",{opacity:0,duration:0.3,ease:"power3.in"},40.18);
+tl.to("#bd-tx",{opacity:1,duration:0.4,ease:"power2.inOut"},40.18);
+unwords("#bd-c4",40.813,tl); unwords("#bd-s4",40.813,tl);
